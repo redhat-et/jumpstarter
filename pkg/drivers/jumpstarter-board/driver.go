@@ -1,6 +1,8 @@
 package jumpstarter_board
 
 import (
+	"fmt"
+
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 )
 
@@ -19,7 +21,15 @@ func (d *JumpstarterDriver) Description() string {
 }
 
 func (d *JumpstarterDriver) FindDevices() ([]harness.Device, error) {
-	return nil, nil
+	hdList := []harness.Device{}
+	jumpstarters, err := scanUdev()
+	if err != nil {
+		return nil, fmt.Errorf("FindDevices: %w", err)
+	}
+	for _, jumpstarter := range jumpstarters {
+		hdList = append(hdList, jumpstarter)
+	}
+	return hdList, nil
 }
 
 func init() {

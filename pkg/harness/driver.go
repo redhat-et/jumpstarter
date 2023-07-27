@@ -21,9 +21,15 @@ func GetDrivers() []HarnessDriver {
 	return drivers
 }
 
-func FindDevices() ([]Device, error) {
+// FindDevices iterates over the available drivers and gets a list of devices.
+// If a driver is specified, only devices for that driver are returned.
+func FindDevices(driverName string) ([]Device, error) {
 	var devices []Device
 	for _, driver := range drivers {
+		if driverName != "" && driverName != driver.Name() {
+			continue // skip this driver
+		}
+
 		d, err := driver.FindDevices()
 		if err != nil {
 			return nil, fmt.Errorf("(%q).FindDevices: %w", driver.Name(), err)

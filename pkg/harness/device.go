@@ -6,11 +6,12 @@ import (
 )
 
 type Device interface {
-	Driver() *HarnessDriver
+	Driver() HarnessDriver
 	PowerOn() error
 	PowerOff() error
 	Console() (io.ReadWriteCloser, error)
 	SetConsoleSpeed(bps int) error
+	Version() (string, error)
 	Name() (string, error)     // name of the device, can be assigned by the user
 	SetName(name string) error // set the name of the device, should be stored in config or flashed to device
 	Serial() (string, error)

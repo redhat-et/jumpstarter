@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +18,10 @@ var listDriversCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		drivers := harness.GetDrivers()
 		for _, driver := range drivers {
-			fmt.Printf("%s\n\t%s\n", driver.Name(), driver.Description())
+			color.Set(color.FgGreen)
+			fmt.Println(driver.Name())
+			color.Unset()
+			fmt.Printf("\t%s\n", driver.Description())
 		}
 	},
 }

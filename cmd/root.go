@@ -4,8 +4,10 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -27,4 +29,13 @@ func Execute() {
 }
 
 func init() {
+}
+
+func handleErrorAsFatal(err error) {
+	if err != nil {
+		color.Set(color.FgRed)
+		fmt.Printf("Error: %s\n", err)
+		color.Unset()
+		os.Exit(1)
+	}
 }
