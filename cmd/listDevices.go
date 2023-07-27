@@ -37,7 +37,7 @@ func init() {
 
 func printDeviceTable(devices []harness.Device) {
 	color.Set(color.FgGreen)
-	fmt.Println("Device Name\tSerial Number\tDriver\t\t\tVersion")
+	fmt.Println("Device Name\tSerial Number\tDriver\t\t\tVersion\tDevice")
 	color.Unset()
 	for _, device := range devices {
 		deviceName, err := device.Name()
@@ -45,8 +45,12 @@ func printDeviceTable(devices []harness.Device) {
 		deviceSerial, err := device.Serial()
 		handleErrorAsFatal(err)
 		deviceVersion, err := device.Version()
-		fmt.Printf("%s\t%s\t%s\t%s\n",
-			deviceName, deviceSerial, device.Driver().Name(), deviceVersion)
+		handleErrorAsFatal(err)
+		dev, err := device.Device()
+		handleErrorAsFatal(err)
+
+		fmt.Printf("%s\t%s\t%s\t%s\t%s\n",
+			deviceName, deviceSerial, device.Driver().Name(), deviceVersion, dev)
 	}
 }
 

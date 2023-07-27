@@ -56,3 +56,7 @@ func (d JumpstarterDevice) SetDiskImage(path string) error {
 func (d JumpstarterDevice) SetControl(signal string, value string) error {
 	return harness.ErrNotImplemented
 }
+
+func (d JumpstarterDevice) Device() (string, error) {
+	return d.devicePath, nil
+}
