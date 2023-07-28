@@ -27,7 +27,7 @@ func (d *JumpstarterDriver) FindDevices() ([]harness.Device, error) {
 		return nil, fmt.Errorf("FindDevices: %w", err)
 	}
 	for _, jumpstarter := range jumpstarters {
-		hdList = append(hdList, jumpstarter)
+		hdList = append(hdList, &jumpstarter)
 	}
 	return hdList, nil
 }

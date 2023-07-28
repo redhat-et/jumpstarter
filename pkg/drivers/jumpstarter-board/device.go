@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"go.bug.st/serial"
@@ -19,7 +20,7 @@ type JumpstarterDevice struct {
 	singletonMutex *sync.Mutex
 }
 
-func (d JumpstarterDevice) PowerOn() error {
+func (d *JumpstarterDevice) PowerOn() error {
 
 	if err := d.ensureSerial(); err != nil {
 		return fmt.Errorf("PowerOn: %w", err)
@@ -35,7 +36,7 @@ func (d JumpstarterDevice) PowerOn() error {
 	return nil
 }
 
-func (d JumpstarterDevice) PowerOff() error {
+func (d *JumpstarterDevice) PowerOff() error {
 	if err := d.ensureSerial(); err != nil {
 		return fmt.Errorf("PowerOff: %w", err)
 	}
@@ -50,42 +51,68 @@ func (d JumpstarterDevice) PowerOff() error {
 	return nil
 }
 
-func (d JumpstarterDevice) Console() (io.ReadWriteCloser, error) {
+func (d *JumpstarterDevice) Console() (io.ReadWriteCloser, error) {
 	return nil, nil
 }
 
-func (d JumpstarterDevice) SetConsoleSpeed(bps int) error {
+func (d *JumpstarterDevice) SetConsoleSpeed(bps int) error {
 	return harness.ErrNotImplemented
 }
 
-func (d JumpstarterDevice) Driver() harness.HarnessDriver {
+func (d *JumpstarterDevice) Driver() harness.HarnessDriver {
 	return d.driver
 }
 
-func (d JumpstarterDevice) Name() (string, error) {
+func (d *JumpstarterDevice) Name() (string, error) {
 	return "jp-" + d.serialNumber, nil
 }
 
-func (d JumpstarterDevice) Version() (string, error) {
+func (d *JumpstarterDevice) Version() (string, error) {
 	return d.version, nil
 }
 
-func (d JumpstarterDevice) Serial() (string, error) {
+func (d *JumpstarterDevice) Serial() (string, error) {
 	return d.serialNumber, nil
 }
 
-func (d JumpstarterDevice) SetName(name string) error {
+func (d *JumpstarterDevice) SetName(name string) error {
 	return harness.ErrNotImplemented
 }
 
-func (d JumpstarterDevice) SetDiskImage(path string) error {
+func (d *JumpstarterDevice) SetDiskImage(path string) error {
+
+	fmt.Print("Detecting USB storage device and connecting to host: ")
+	diskPath, err := d.detectStorageDevice()
+	if err != nil {
+		return fmt.Errorf("SetDiskImage: %w", err)
+	}
+	fmt.Println("done")
+
+	fmt.Printf("%s -> %s: \n", path, diskPath)
+
+	if err := writeImageToDisk(path, diskPath); err != nil {
+		return fmt.Errorf("SetDiskImage: %w", err)
+	}
+
+	fmt.Print("Connecting storage to device under test.. ")
+	if err := d.connectStorageTo(OFF); err != nil {
+		return fmt.Errorf("SetDiskImage: %w", err)
+	}
+
+	time.Sleep(1 * time.Second) // enough time to power cycle the USB disk
+	if err := d.connectStorageTo(DUT); err != nil {
+		return fmt.Errorf("SetDiskImage: %w", err)
+	}
+
+	fmt.Println("done")
+
+	return nil
+}
+
+func (d *JumpstarterDevice) SetControl(signal string, value string) error {
 	return harness.ErrNotImplemented
 }
 
-func (d JumpstarterDevice) SetControl(signal string, value string) error {
-	return harness.ErrNotImplemented
-}
-
-func (d JumpstarterDevice) Device() (string, error) {
+func (d *JumpstarterDevice) Device() (string, error) {
 	return d.devicePath, nil
 }
