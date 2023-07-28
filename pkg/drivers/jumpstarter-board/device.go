@@ -1,23 +1,52 @@
 package jumpstarter_board
 
 import (
+	"fmt"
 	"io"
+	"sync"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
+	"go.bug.st/serial"
 )
 
 type JumpstarterDevice struct {
-	driver       *JumpstarterDriver
-	devicePath   string
-	version      string
-	serialNumber string
+	driver         *JumpstarterDriver
+	devicePath     string
+	version        string
+	serialNumber   string
+	serialPort     serial.Port
+	mutex          *sync.Mutex
+	singletonMutex *sync.Mutex
 }
 
 func (d JumpstarterDevice) PowerOn() error {
+
+	if err := d.ensureSerial(); err != nil {
+		return fmt.Errorf("PowerOn: %w", err)
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return fmt.Errorf("PowerOn: %w", err)
+	}
+
+	if err := d.sendAndExpect("power on", "Device powered on"); err != nil {
+		return fmt.Errorf("PowerOn: %w", err)
+	}
 	return nil
 }
 
 func (d JumpstarterDevice) PowerOff() error {
+	if err := d.ensureSerial(); err != nil {
+		return fmt.Errorf("PowerOff: %w", err)
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return fmt.Errorf("PowerOff: %w", err)
+	}
+
+	if err := d.sendAndExpect("power off", "Device powered off"); err != nil {
+		return fmt.Errorf("PowerOff: %w", err)
+	}
 	return nil
 }
 

@@ -38,3 +38,28 @@ func FindDevices(driverName string) ([]Device, error) {
 	}
 	return devices, nil
 }
+
+// FindDevice iterates over the available drivers and return a specific Device.
+// If a driver is specified, only devices for that driver are returned.
+func FindDevice(driverName string, deviceId string) (Device, error) {
+	devices, err := FindDevices(driverName)
+	if err != nil {
+		return nil, fmt.Errorf("FindDevices: %w", err)
+	}
+
+	for _, device := range devices {
+		name, err := device.Name()
+		if err != nil {
+			return nil, fmt.Errorf("FindDevice (%q).Name: %w", device.Driver().Name(), err)
+		}
+
+		serialNumber, err := device.Serial()
+		if err != nil {
+			return nil, fmt.Errorf("FindDevice (%q).SerialNumber: %w", device.Driver().Name(), err)
+		}
+		if name == deviceId || serialNumber == deviceId {
+			return device, nil
+		}
+	}
+	return nil, fmt.Errorf("FindDevice: %q not found", deviceId)
+}

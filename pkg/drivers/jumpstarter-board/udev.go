@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -122,9 +123,11 @@ func scanUdev() ([]JumpstarterDevice, error) {
 			}
 
 			jp := JumpstarterDevice{
-				devicePath:   "/dev/" + ttynames[0].Name(),
-				version:      version,
-				serialNumber: serial,
+				devicePath:     "/dev/" + ttynames[0].Name(),
+				version:        version,
+				serialNumber:   serial,
+				mutex:          &sync.Mutex{},
+				singletonMutex: &sync.Mutex{},
 			}
 			res = append(res, jp)
 
