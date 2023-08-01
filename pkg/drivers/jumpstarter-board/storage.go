@@ -26,7 +26,7 @@ const (
 	OFF
 )
 
-func (d *JumpstarterDevice) ConnectDiskImage(connected bool) error {
+func (d *JumpstarterDevice) AttachStorage(connected bool) error {
 	var err error
 	switch connected {
 	case true:

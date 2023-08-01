@@ -15,7 +15,7 @@ type Device interface {
 	SetName(name string) error // set the name of the device, should be stored in config or flashed to device
 	Serial() (string, error)
 	SetDiskImage(path string) error
-	ConnectDiskImage(connect bool) error
+	AttachStorage(connect bool) error
 	SetControl(signal string, value string) error
 	Device() (string, error)
 }
