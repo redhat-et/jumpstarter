@@ -27,19 +27,23 @@ var consoleCmd = &cobra.Command{
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
 
-		serial, err := device.Console()
-		handleErrorAsFatal(err)
-		defer serial.Close()
-
-		fmt.Println("Entering console: Press Ctrl-B 5 times to exit console")
-
-		runConsole(serial)
+		serialConsole(device)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(consoleCmd)
 	consoleCmd.Flags().StringP("driver", "d", "", "Only devices for the specified driver")
+}
+
+func serialConsole(device harness.Device) {
+	serial, err := device.Console()
+	handleErrorAsFatal(err)
+	defer serial.Close()
+
+	fmt.Println("Entering console: Press Ctrl-B 5 times to exit console")
+
+	runConsole(serial)
 }
 
 func runConsole(serial io.ReadWriteCloser) {

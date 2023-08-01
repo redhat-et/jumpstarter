@@ -4,6 +4,8 @@ Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com
 package cmd
 
 import (
+	"time"
+
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 )
@@ -19,18 +21,31 @@ var powerOnCmd = &cobra.Command{
 		}
 
 		driver := cmd.Flag("driver").Value.String()
+		console := cmd.Flag("console").Value.String() == "true"
+		pwcycle := cmd.Flag("cycle").Value.String() == "true"
+
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
+
+		if pwcycle {
+			err = device.Power(false)
+			handleErrorAsFatal(err)
+			time.Sleep(2 * time.Second)
+		}
 
 		err = device.Power(true)
 		handleErrorAsFatal(err)
 
+		if console {
+			serialConsole(device)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(powerOnCmd)
 	powerOnCmd.Flags().StringP("driver", "d", "", "Only list devices for the specified driver")
-	// add fixed possition argument device-id
+	powerOnCmd.Flags().BoolP("console", "c", false, "Open console after powering on")
+	powerOnCmd.Flags().BoolP("cycle", "r", false, "Power cycle the device")
 
 }

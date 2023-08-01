@@ -49,7 +49,7 @@ func (d *JumpstarterDevice) Console() (io.ReadWriteCloser, error) {
 		return nil, fmt.Errorf("Console: %w", err)
 	}
 
-	if err := d.sendAndExpectNoPrompt("console", "\r\n"); err != nil {
+	if err := d.sendAndExpectNoPrompt("console", "Entering console mode, type CTRL+B 5 times to exit\r\n"); err != nil {
 		return nil, fmt.Errorf("Console: %w", err)
 	}
 
