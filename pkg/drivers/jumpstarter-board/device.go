@@ -20,39 +20,40 @@ type JumpstarterDevice struct {
 	singletonMutex *sync.Mutex
 }
 
-func (d *JumpstarterDevice) PowerOn() error {
-
+func (d *JumpstarterDevice) Power(on bool) error {
 	if err := d.ensureSerial(); err != nil {
-		return fmt.Errorf("PowerOn: %w", err)
+		return fmt.Errorf("Power(%v): %w", on, err)
 	}
 
 	if err := d.exitConsole(); err != nil {
-		return fmt.Errorf("PowerOn: %w", err)
+		return fmt.Errorf("Power(%v): %w", on, err)
 	}
-
-	if err := d.sendAndExpect("power on", "Device powered on"); err != nil {
-		return fmt.Errorf("PowerOn: %w", err)
-	}
-	return nil
-}
-
-func (d *JumpstarterDevice) PowerOff() error {
-	if err := d.ensureSerial(); err != nil {
-		return fmt.Errorf("PowerOff: %w", err)
-	}
-
-	if err := d.exitConsole(); err != nil {
-		return fmt.Errorf("PowerOff: %w", err)
-	}
-
-	if err := d.sendAndExpect("power off", "Device powered off"); err != nil {
-		return fmt.Errorf("PowerOff: %w", err)
+	if on {
+		if err := d.sendAndExpect("power on", "Device powered on"); err != nil {
+			return fmt.Errorf("PowerOn: %w", err)
+		}
+	} else {
+		if err := d.sendAndExpect("power off", "Device powered off"); err != nil {
+			return fmt.Errorf("Power(%v): %w", on, err)
+		}
 	}
 	return nil
 }
 
 func (d *JumpstarterDevice) Console() (io.ReadWriteCloser, error) {
-	return nil, nil
+	if err := d.ensureSerial(); err != nil {
+		return nil, fmt.Errorf("Console: %w", err)
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return nil, fmt.Errorf("Console: %w", err)
+	}
+
+	if err := d.sendAndExpectNoPrompt("console", "\r\n"); err != nil {
+		return nil, fmt.Errorf("Console: %w", err)
+	}
+
+	return d.serialPort, nil
 }
 
 func (d *JumpstarterDevice) SetConsoleSpeed(bps int) error {

@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com
 */
 package cmd
 
@@ -22,7 +22,7 @@ var powerOnCmd = &cobra.Command{
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
 
-		err = device.PowerOn()
+		err = device.Power(true)
 		handleErrorAsFatal(err)
 
 	},

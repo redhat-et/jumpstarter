@@ -64,8 +64,8 @@ DEVNAME=ttyACM0
 //
 // return a list of devices that match
 // return an error if there is a problem
-func scanUdev() ([]JumpstarterDevice, error) {
-	res := []JumpstarterDevice{}
+func scanUdev() ([]*JumpstarterDevice, error) {
+	res := []*JumpstarterDevice{}
 
 	err := filepath.Walk(BASE_UDEVPATH, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -129,7 +129,7 @@ func scanUdev() ([]JumpstarterDevice, error) {
 				mutex:          &sync.Mutex{},
 				singletonMutex: &sync.Mutex{},
 			}
-			res = append(res, jp)
+			res = append(res, &jp)
 
 		}
 		return nil

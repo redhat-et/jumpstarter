@@ -26,6 +26,20 @@ const (
 	OFF
 )
 
+func (d *JumpstarterDevice) ConnectDiskImage(connected bool) error {
+	var err error
+	switch connected {
+	case true:
+		err = d.connectStorageTo(DUT)
+	case false:
+		err = d.connectStorageTo(OFF)
+	}
+	if err != nil {
+		return fmt.Errorf("ConnectDiskImage(%v): %w", connected, err)
+	}
+	return nil
+}
+
 func (d *JumpstarterDevice) connectStorageTo(target StorageTarget) error {
 	if err := d.ensureSerial(); err != nil {
 		return fmt.Errorf("connectStorageTo: %w", err)

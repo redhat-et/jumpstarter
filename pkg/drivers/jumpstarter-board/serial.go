@@ -72,6 +72,20 @@ func (d *JumpstarterDevice) sendAndExpect(cmd, expected string) error {
 	return nil
 }
 
+func (d *JumpstarterDevice) sendAndExpectNoPrompt(cmd, expected string) error {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	if err := d.send(cmd); err != nil {
+		return fmt.Errorf("sendAndExpect(%q, %q) sending: %w", cmd, expected, err)
+	}
+
+	if err := d.expect(expected); err != nil {
+		return fmt.Errorf("sendAndExpect(%q, %q) expecting response: %w", cmd, expected, err)
+	}
+
+	return nil
+}
+
 func (d *JumpstarterDevice) send(cmd string) error {
 	_, err := d.serialPort.Write([]byte(cmd + "\r\n"))
 	if err != nil {

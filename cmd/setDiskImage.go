@@ -9,12 +9,12 @@ import (
 )
 
 // powerCmd represents the listDevices command
-var powerOffCmd = &cobra.Command{
-	Use:   "power-off",
-	Short: "Powers device off",
+var setDiskImageCmd = &cobra.Command{
+	Use:   "set-disk-image",
+	Short: "Writes a disk image to the target device attached storage",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := cobra.MinimumNArgs(1)(cmd, args); err != nil {
+		if err := cobra.MinimumNArgs(2)(cmd, args); err != nil {
 			handleErrorAsFatal(err)
 		}
 
@@ -22,14 +22,15 @@ var powerOffCmd = &cobra.Command{
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
 
-		err = device.Power(false)
+		err = device.SetDiskImage(args[1])
 		handleErrorAsFatal(err)
 
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(powerOffCmd)
-	powerOffCmd.Flags().StringP("driver", "d", "", "Only list devices for the specified driver")
+	rootCmd.AddCommand(setDiskImageCmd)
+	setDiskImageCmd.Flags().StringP("driver", "d", "", "Only list devices for the specified driver")
+	// add fixed possition argument device-id
 
 }
