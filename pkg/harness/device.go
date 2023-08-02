@@ -16,7 +16,7 @@ type Device interface {
 	Serial() (string, error)
 	SetDiskImage(path string) error
 	AttachStorage(connect bool) error
-	SetControl(signal string, value string) error
+	SetControl(key string, value string) error
 	Device() (string, error)
 }
 
