@@ -4,8 +4,10 @@ Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com
 package cmd
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 )
@@ -27,14 +29,23 @@ var powerOnCmd = &cobra.Command{
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
 
+		color.Set(COLOR_CMD_INFO)
 		if pwcycle {
+			fmt.Printf("🔌 Power cycling %s... ", args[0])
 			err = device.Power(false)
 			handleErrorAsFatal(err)
 			time.Sleep(2 * time.Second)
+		} else {
+			fmt.Printf("🔌 Powering on %s... ", args[0])
 		}
+		color.Unset()
 
 		err = device.Power(true)
 		handleErrorAsFatal(err)
+
+		color.Set(COLOR_CMD_INFO)
+		fmt.Println("done")
+		color.Unset()
 
 		if console {
 			serialConsole(device)

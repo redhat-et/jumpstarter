@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
@@ -41,8 +42,9 @@ func serialConsole(device harness.Device) {
 	handleErrorAsFatal(err)
 	defer serial.Close()
 
-	fmt.Println("Entering console: Press Ctrl-B 5 times to exit console")
-
+	color.Set(COLOR_CMD_INFO)
+	fmt.Println("💻 Entering console: Press Ctrl-B 5 times to exit console")
+	color.Unset()
 	runConsole(serial)
 }
 

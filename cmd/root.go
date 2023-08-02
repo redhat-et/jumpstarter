@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const COLOR_CMD_INFO = color.FgHiYellow
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "jumpstarter",
@@ -35,7 +37,7 @@ func init() {
 func handleErrorAsFatal(err error) {
 	if err != nil {
 		color.Set(color.FgRed)
-		fmt.Printf("Error: %s\n", err)
+		fmt.Printf("❌ Error: %s\n", err)
 		color.Unset()
 		os.Exit(1)
 	}

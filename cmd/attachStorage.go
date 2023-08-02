@@ -4,6 +4,8 @@ Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 )
@@ -22,8 +24,10 @@ var attachStorage = &cobra.Command{
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
 
+		fmt.Printf("💾 Attaching storage for %s ... ", args[0])
 		err = device.AttachStorage(true)
 		handleErrorAsFatal(err)
+		fmt.Println("done")
 
 	},
 }

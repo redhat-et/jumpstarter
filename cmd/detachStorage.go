@@ -4,6 +4,9 @@ Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 )
@@ -22,9 +25,16 @@ var detachStorage = &cobra.Command{
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
 
+		color.Set(COLOR_CMD_INFO)
+		fmt.Printf("💾 Detaching storage for %s ... ", args[0])
+		color.Unset()
+
 		err = device.AttachStorage(false)
 		handleErrorAsFatal(err)
 
+		color.Set(COLOR_CMD_INFO)
+		fmt.Println("done")
+		color.Unset()
 	},
 }
 

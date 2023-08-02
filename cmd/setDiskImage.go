@@ -4,6 +4,9 @@ Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +25,9 @@ var setDiskImageCmd = &cobra.Command{
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
 
+		color.Set(COLOR_CMD_INFO)
+		fmt.Printf("💾 Writing disk image for %s\n", args[0])
+		color.Unset()
 		err = device.SetDiskImage(args[1])
 		handleErrorAsFatal(err)
 
