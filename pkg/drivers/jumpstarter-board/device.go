@@ -111,7 +111,21 @@ func (d *JumpstarterDevice) SetDiskImage(path string) error {
 }
 
 func (d *JumpstarterDevice) SetControl(signal string, value string) error {
-	return harness.ErrNotImplemented
+	if err := d.ensureSerial(); err != nil {
+		return fmt.Errorf("SetControl(%q,%q): %w", signal, value, err)
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return fmt.Errorf("SetControl(%q,%q): %w", signal, value, err)
+	}
+
+	setCmd := fmt.Sprintf("set %s %s", signal, value)
+
+	if err := d.sendAndExpect(setCmd, "Device powered on"); err != nil {
+		return fmt.Errorf("SetControl(%q,%q): %w", signal, value, err)
+	}
+
+	return nil
 }
 
 func (d *JumpstarterDevice) Device() (string, error) {
