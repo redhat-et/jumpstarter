@@ -3,6 +3,7 @@ package jumpstarter_board
 import (
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"time"
 
@@ -111,6 +112,20 @@ func (d *JumpstarterDevice) SetDiskImage(path string) error {
 }
 
 func (d *JumpstarterDevice) SetControl(signal string, value string) error {
+
+	signal = strings.ToLower(signal)
+	value = strings.ToLower(value)
+
+	// check if is valid (r, a, b, c, or d)
+	if !strings.Contains("rabcd", signal) {
+		return fmt.Errorf("SetControl(%q,%q): invalid signal, must be any of r|a|b|c|d", signal, value)
+	}
+
+	// check if value is valid (h, l or z)
+	if !strings.Contains("hlz", value) {
+		return fmt.Errorf("SetControl(%q,%q): invalid value, must be any of h|l|z", signal, value)
+	}
+
 	if err := d.ensureSerial(); err != nil {
 		return fmt.Errorf("SetControl(%q,%q): %w", signal, value, err)
 	}
@@ -121,7 +136,7 @@ func (d *JumpstarterDevice) SetControl(signal string, value string) error {
 
 	setCmd := fmt.Sprintf("set %s %s", signal, value)
 
-	if err := d.sendAndExpect(setCmd, "Device powered on"); err != nil {
+	if err := d.sendAndExpect(setCmd, setCmd+"\r\nSet "); err != nil {
 		return fmt.Errorf("SetControl(%q,%q): %w", signal, value, err)
 	}
 
