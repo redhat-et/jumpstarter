@@ -5,7 +5,9 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"github.com/spf13/cobra"
 )
@@ -23,11 +25,18 @@ var attachStorage = &cobra.Command{
 		driver := cmd.Flag("driver").Value.String()
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
-
+		color.Set(COLOR_CMD_INFO)
 		fmt.Printf("💾 Attaching storage for %s ... ", args[0])
+		color.Unset()
+
+		err = device.AttachStorage(false)
+		handleErrorAsFatal(err)
+		time.Sleep(2 * time.Second) // detach/attach cycle to power cycle
 		err = device.AttachStorage(true)
 		handleErrorAsFatal(err)
+		color.Set(COLOR_CMD_INFO)
 		fmt.Println("done")
+		color.Unset()
 
 	},
 }

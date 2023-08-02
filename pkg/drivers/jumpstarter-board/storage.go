@@ -166,6 +166,7 @@ func writeImageToDisk(imagePath string, diskPath string) error {
 		fmt.Printf("\r%d MB copied %.2f MB/s         ", MBCopied, MBPerSec)
 	}
 	outputFile.Close()
+	fmt.Println()
 	err = exec.Command("udisksctl", "power-off", "-b", diskPath).Run()
 	if err != nil {
 		return fmt.Errorf("writeImageToDisk: %w", err)
