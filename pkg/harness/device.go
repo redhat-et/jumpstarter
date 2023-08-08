@@ -12,7 +12,9 @@ type Device interface {
 	SetConsoleSpeed(bps int) error
 	Version() (string, error)
 	Name() (string, error)     // name of the device, can be assigned by the user
+	Tags() ([]string, error)   // tags assigned to the device, can be assigned by the user
 	SetName(name string) error // set the name of the device, should be stored in config or flashed to device
+	SetTags(tags []string) error
 	Serial() (string, error)
 	SetDiskImage(path string) error
 	AttachStorage(connect bool) error

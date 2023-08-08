@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
@@ -18,7 +19,9 @@ var listDevicesCmd = &cobra.Command{
 	Long:  `Iterates over the available drivers and gets a list of devices.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		driver := cmd.Flag("driver").Value.String()
-		devices, err := harness.FindDevices(driver)
+		tag := cmd.Flag("tag").Value.String()
+
+		devices, err := harness.FindDevices(driver, tag)
 		handleErrorAsFatal(err)
 		if cmd.Flag("only-names").Value.String() == "true" {
 			printDeviceNames(devices)
@@ -33,11 +36,12 @@ func init() {
 	rootCmd.AddCommand(listDevicesCmd)
 	listDevicesCmd.Flags().StringP("driver", "d", "", "Only list devices for the specified driver")
 	listDevicesCmd.Flags().Bool("only-names", false, "Only list the device names")
+	listDevicesCmd.Flags().StringP("tag", "t", "", "Only list devices with the specified tag")
 }
 
 func printDeviceTable(devices []harness.Device) {
 	color.Set(color.FgGreen)
-	fmt.Println("Device Name\tSerial Number\tDriver\t\t\tVersion\tDevice")
+	fmt.Println("Device Name\tSerial Number\tDriver\t\t\tVersion\tDevice\t\tTags")
 	color.Unset()
 	for _, device := range devices {
 		deviceName, err := device.Name()
@@ -48,9 +52,12 @@ func printDeviceTable(devices []harness.Device) {
 		handleErrorAsFatal(err)
 		dev, err := device.Device()
 		handleErrorAsFatal(err)
+		tags, err := device.Tags()
+		handleErrorAsFatal(err)
+		str_tags := strings.Join(tags, ", ")
 
-		fmt.Printf("%s\t%s\t%s\t%s\t%s\n",
-			deviceName, deviceSerial, device.Driver().Name(), deviceVersion, dev)
+		fmt.Printf("%s\t%s\t%s\t%s\t%s\t%s\n",
+			deviceName, deviceSerial, device.Driver().Name(), deviceVersion, dev, str_tags)
 	}
 }
 

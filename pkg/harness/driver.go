@@ -1,6 +1,9 @@
 package harness
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type HarnessDriver interface {
 	Name() string
@@ -23,7 +26,8 @@ func GetDrivers() []HarnessDriver {
 
 // FindDevices iterates over the available drivers and gets a list of devices.
 // If a driver is specified, only devices for that driver are returned.
-func FindDevices(driverName string) ([]Device, error) {
+
+func FindDevices(driverName string, tag string) ([]Device, error) {
 	var devices []Device
 	for _, driver := range drivers {
 		if driverName != "" && driverName != driver.Name() {
@@ -34,15 +38,38 @@ func FindDevices(driverName string) ([]Device, error) {
 		if err != nil {
 			return nil, fmt.Errorf("(%q).FindDevices: %w", driver.Name(), err)
 		}
-		devices = append(devices, d...)
+		for _, device := range d {
+			if tag != "" {
+				deviceTags, err := device.Tags()
+				if err != nil {
+					return nil, fmt.Errorf("(%q).Tags: %w", driver.Name(), err)
+				}
+				fmt.Println(deviceTags, tag)
+				if contains_tag(deviceTags, tag) {
+					devices = append(devices, device)
+				}
+			} else {
+				devices = append(devices, device)
+			}
+		}
+
 	}
 	return devices, nil
+}
+
+func contains_tag(slice []string, str string) bool {
+	for _, s := range slice {
+		if strings.ToLower(s) == strings.ToLower(str) {
+			return true
+		}
+	}
+	return false
 }
 
 // FindDevice iterates over the available drivers and return a specific Device.
 // If a driver is specified, only devices for that driver are returned.
 func FindDevice(driverName string, deviceId string) (Device, error) {
-	devices, err := FindDevices(driverName)
+	devices, err := FindDevices(driverName, "")
 	if err != nil {
 		return nil, fmt.Errorf("FindDevices: %w", err)
 	}

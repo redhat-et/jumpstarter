@@ -19,6 +19,10 @@ type JumpstarterDevice struct {
 	serialPort     serial.Port
 	mutex          *sync.Mutex
 	singletonMutex *sync.Mutex
+	name           string
+	storage        string
+	tags           []string
+	busy           bool
 }
 
 func (d *JumpstarterDevice) Power(on bool) error {
@@ -65,20 +69,12 @@ func (d *JumpstarterDevice) Driver() harness.HarnessDriver {
 	return d.driver
 }
 
-func (d *JumpstarterDevice) Name() (string, error) {
-	return "jp-" + d.serialNumber, nil
-}
-
 func (d *JumpstarterDevice) Version() (string, error) {
 	return d.version, nil
 }
 
 func (d *JumpstarterDevice) Serial() (string, error) {
 	return d.serialNumber, nil
-}
-
-func (d *JumpstarterDevice) SetName(name string) error {
-	return harness.ErrNotImplemented
 }
 
 func (d *JumpstarterDevice) SetDiskImage(path string) error {
@@ -116,14 +112,27 @@ func (d *JumpstarterDevice) SetControl(signal string, value string) error {
 	signal = strings.ToLower(signal)
 	value = strings.ToLower(value)
 
+	switch value {
+	case "low":
+		value = "l"
+	case "high":
+		value = "h"
+	case "hiz":
+		value = "z"
+	}
+
+	if signal == "reset" {
+		signal = "r"
+	}
+
 	// check if is valid (r, a, b, c, or d)
 	if !strings.Contains("rabcd", signal) {
-		return fmt.Errorf("SetControl(%q,%q): invalid signal, must be any of r|a|b|c|d", signal, value)
+		return fmt.Errorf("SetControl(%q,%q): invalid signal, must be any of reset|r|a|b|c|d", signal, value)
 	}
 
 	// check if value is valid (h, l or z)
 	if !strings.Contains("hlz", value) {
-		return fmt.Errorf("SetControl(%q,%q): invalid value, must be any of h|l|z", signal, value)
+		return fmt.Errorf("SetControl(%q,%q): invalid value, must be any of h|l|z|high|low|hiz", signal, value)
 	}
 
 	if err := d.ensureSerial(); err != nil {

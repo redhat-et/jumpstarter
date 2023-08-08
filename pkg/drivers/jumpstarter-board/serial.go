@@ -19,6 +19,17 @@ func (d *JumpstarterDevice) ensureSerial() error {
 	return nil
 }
 
+func (d *JumpstarterDevice) closeSerial() error {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	if d.serialPort != nil {
+		err := d.serialPort.Close()
+		d.serialPort = nil
+		return err
+	}
+	return nil
+}
+
 func (d *JumpstarterDevice) openSerial() error {
 
 	mode := &serial.Mode{
