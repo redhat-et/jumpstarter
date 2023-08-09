@@ -19,9 +19,10 @@ var listDevicesCmd = &cobra.Command{
 	Long:  `Iterates over the available drivers and gets a list of devices.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		driver := cmd.Flag("driver").Value.String()
-		tag := cmd.Flag("tag").Value.String()
+		tags, err := cmd.Flags().GetStringArray("tag")
+		handleErrorAsFatal(err)
 
-		devices, err := harness.FindDevices(driver, tag)
+		devices, err := harness.FindDevices(driver, tags)
 		handleErrorAsFatal(err)
 		if cmd.Flag("only-names").Value.String() == "true" {
 			printDeviceNames(devices)
@@ -36,7 +37,7 @@ func init() {
 	rootCmd.AddCommand(listDevicesCmd)
 	listDevicesCmd.Flags().StringP("driver", "d", "", "Only list devices for the specified driver")
 	listDevicesCmd.Flags().Bool("only-names", false, "Only list the device names")
-	listDevicesCmd.Flags().StringP("tag", "t", "", "Only list devices with the specified tag")
+	listDevicesCmd.Flags().StringArrayP("tag", "t", []string{}, "Only list devices with the specified tag(s) can be used multiple times")
 }
 
 func printDeviceTable(devices []harness.Device) {

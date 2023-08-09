@@ -5,8 +5,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/redhat-et/jumpstarter/pkg/harness"
 )
 
 func newJumpstarter(ttyname string, version string, serial string) JumpstarterDevice {
@@ -45,6 +43,7 @@ func (d *JumpstarterDevice) readConfig() error {
 	buf := make([]byte, 1024)
 	c := make([]byte, 1)
 	p := 0
+	// keep reading until we reach the prompt or the read times out
 	for p < len(buf) {
 		n, err := d.serialPort.Read(c)
 		if err != nil {
@@ -62,13 +61,13 @@ func (d *JumpstarterDevice) readConfig() error {
 	lines := strings.Split(string(buf), "\r\n")
 	for _, line := range lines {
 		if strings.HasPrefix(line, "name:") {
-			d.name = strings.TrimSpace(strings.TrimPrefix(line, "name:"))
+			d.name = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(line, "name:")))
 		}
 		if strings.HasPrefix(line, "tags:") {
-			d.tags = strings.Split(strings.TrimSpace(strings.TrimPrefix(line, "tags:")), ",")
+			d.tags = strings.Split(strings.ToLower(strings.TrimSpace(strings.TrimPrefix(line, "tags:"))), ",")
 		}
 		if strings.HasPrefix(line, "storage:") {
-			d.storage = strings.TrimSpace(strings.TrimPrefix(line, "storage:"))
+			d.storage = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(line, "storage:")))
 		}
 	}
 	if d.name == "" {
@@ -99,7 +98,20 @@ func (d *JumpstarterDevice) Name() (string, error) {
 }
 
 func (d *JumpstarterDevice) SetTags(tags []string) error {
-	return harness.ErrNotImplemented
+	joinTags := strings.Join(tags, ",")
+	if err := d.ensureSerial(); err != nil {
+		return fmt.Errorf("SetTags(%s): %w", joinTags, err)
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return fmt.Errorf("SetTags(%s): %w", joinTags, err)
+	}
+
+	if err := d.sendAndExpect("set-config tags "+strings.Join(tags, ","), "Set tags to "+joinTags); err != nil {
+		return fmt.Errorf("SetTags(%s) %w", joinTags, err)
+	}
+
+	return nil
 }
 
 func (d *JumpstarterDevice) Tags() ([]string, error) {

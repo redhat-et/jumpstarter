@@ -23,8 +23,9 @@ var powerOnCmd = &cobra.Command{
 		}
 
 		driver := cmd.Flag("driver").Value.String()
-		console := cmd.Flag("console").Value.String() == "true"
-		pwcycle := cmd.Flag("cycle").Value.String() == "true"
+		console, _ := cmd.Flags().GetBool("console")
+		pwcycle, _ := cmd.Flags().GetBool("cycle")
+		attach_storage, _ := cmd.Flags().GetBool("attach-storage")
 
 		device, err := harness.FindDevice(driver, args[0])
 		handleErrorAsFatal(err)
@@ -47,6 +48,17 @@ var powerOnCmd = &cobra.Command{
 		fmt.Println("done")
 		color.Unset()
 
+		if attach_storage {
+			color.Set(COLOR_CMD_INFO)
+			fmt.Printf("💾 Attaching storage for %s ... ", args[0])
+			color.Unset()
+			err = device.AttachStorage(true)
+			handleErrorAsFatal(err)
+			color.Set(COLOR_CMD_INFO)
+			fmt.Println("done")
+			color.Unset()
+		}
+
 		if console {
 			serialConsole(device)
 		}
@@ -58,5 +70,5 @@ func init() {
 	powerOnCmd.Flags().StringP("driver", "d", "", "Only list devices for the specified driver")
 	powerOnCmd.Flags().BoolP("console", "c", false, "Open console after powering on")
 	powerOnCmd.Flags().BoolP("cycle", "r", false, "Power cycle the device")
-
+	powerOnCmd.Flags().BoolP("attach-storage", "a", false, "Attach storage before powering on")
 }
