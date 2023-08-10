@@ -5,7 +5,6 @@ import (
 	"io"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"go.bug.st/serial"
@@ -75,36 +74,6 @@ func (d *JumpstarterDevice) Version() (string, error) {
 
 func (d *JumpstarterDevice) Serial() (string, error) {
 	return d.serialNumber, nil
-}
-
-func (d *JumpstarterDevice) SetDiskImage(path string) error {
-
-	fmt.Print("Detecting USB storage device and connecting to host: ")
-	diskPath, err := d.detectStorageDevice()
-	if err != nil {
-		return fmt.Errorf("SetDiskImage: %w", err)
-	}
-	fmt.Println("done")
-
-	fmt.Printf("%s -> %s: \n", path, diskPath)
-
-	if err := writeImageToDisk(path, diskPath); err != nil {
-		return fmt.Errorf("SetDiskImage: %w", err)
-	}
-
-	fmt.Print("Connecting storage to device under test.. ")
-	if err := d.connectStorageTo(OFF); err != nil {
-		return fmt.Errorf("SetDiskImage: %w", err)
-	}
-
-	time.Sleep(1 * time.Second) // enough time to power cycle the USB disk
-	if err := d.connectStorageTo(DUT); err != nil {
-		return fmt.Errorf("SetDiskImage: %w", err)
-	}
-
-	fmt.Println("done")
-
-	return nil
 }
 
 func (d *JumpstarterDevice) SetControl(signal string, value string) error {

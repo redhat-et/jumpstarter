@@ -26,6 +26,29 @@ const (
 	OFF
 )
 
+func (d *JumpstarterDevice) SetDiskImage(path string) error {
+
+	fmt.Print("Detecting USB storage device and connecting to host: ")
+	diskPath, err := d.detectStorageDevice()
+	if err != nil {
+		return fmt.Errorf("SetDiskImage: %w", err)
+	}
+	fmt.Println("done")
+
+	fmt.Printf("%s -> %s: \n", path, diskPath)
+
+	if err := writeImageToDisk(path, diskPath); err != nil {
+		return fmt.Errorf("SetDiskImage: %w", err)
+	}
+
+	fmt.Print("Connecting storage to device under test.. ")
+	if err := d.connectStorageTo(OFF); err != nil {
+		return fmt.Errorf("SetDiskImage: %w", err)
+	}
+
+	return nil
+}
+
 func (d *JumpstarterDevice) AttachStorage(connected bool) error {
 	var err error
 	switch connected {
