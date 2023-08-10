@@ -54,6 +54,9 @@ func (d *JumpstarterDevice) openSerial() error {
 
 func (d *JumpstarterDevice) exitConsole() error {
 
+	if !d.consoleMode {
+		return nil
+	}
 	// make sure we are not in console mode
 	if err := d.sendAndExpect(ESCAPE_SEQUENCE, "\n"); err != nil {
 		return fmt.Errorf("exitConsole: %w", err)
@@ -63,6 +66,7 @@ func (d *JumpstarterDevice) exitConsole() error {
 	if err := d.sendAndExpect("monitor off", "Monitor disabled"); err != nil {
 		return fmt.Errorf("exitConsole: %w", err)
 	}
+	d.consoleMode = false
 	return nil
 }
 
@@ -105,6 +109,7 @@ func (d *JumpstarterDevice) send(cmd string) error {
 
 	return nil
 }
+
 func (d *JumpstarterDevice) expect(expected string) error {
 	d.serialPort.SetReadTimeout(1 * time.Second)
 	p := 0

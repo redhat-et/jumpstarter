@@ -3,12 +3,18 @@ package harness
 import (
 	"errors"
 	"io"
+	"time"
 )
+
+type ConsoleInterface interface {
+	io.ReadWriteCloser
+	SetReadTimeout(t time.Duration) error
+}
 
 type Device interface {
 	Driver() HarnessDriver
 	Power(on bool) error
-	Console() (io.ReadWriteCloser, error)
+	Console() (ConsoleInterface, error)
 	SetConsoleSpeed(bps int) error
 	Version() (string, error)
 	Name() string              // name of the device, can be assigned by the user

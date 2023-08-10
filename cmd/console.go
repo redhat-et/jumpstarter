@@ -43,7 +43,7 @@ func serialConsole(device harness.Device) {
 	defer serial.Close()
 
 	color.Set(COLOR_CMD_INFO)
-	fmt.Println("💻 Entering console: Press Ctrl-B 5 times to exit console")
+	fmt.Println("💻 Entering console: Press Ctrl-B 3 times to exit console")
 	color.Unset()
 	runConsole(serial)
 }
@@ -60,6 +60,8 @@ func runConsole(serial io.ReadWriteCloser) {
 			fmt.Print("\033c\033[2J\033[H")
 
 		}()
+		// TODO: this will result in the output of the serial console exit command
+		// we need to control console via DTR instead
 		go io.Copy(os.Stdout, serial)
 		ctrlBCount := 0
 		for {
@@ -70,7 +72,7 @@ func runConsole(serial io.ReadWriteCloser) {
 			}
 			if b[0] == 2 {
 				ctrlBCount++
-				if ctrlBCount == 5 {
+				if ctrlBCount == 3 {
 					return
 				}
 			} else {

@@ -49,9 +49,13 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 	switch {
 	case p.SetDiskImage != nil:
 		return p.SetDiskImage.run(device)
+
+	case p.Expect != nil:
+		if p.Expect.Timeout == 0 {
+			p.Expect.Timeout = uint(p.parent.ExpectTimeout)
+		}
+		return p.Expect.run(device)
 		/*
-			case p.Expect != nil:
-				return p.Expect.run(device)
 			case p.Send != nil:
 				return p.Send.run(device)
 		*/
@@ -133,6 +137,7 @@ func (p *JumpstarterPlaybook) run(device harness.Device) error {
 func (p *JumpstarterPlaybook) runTasks(tasks *[]JumpstarterTask, device harness.Device) error {
 
 	for _, task := range *tasks {
+		task.parent = p // The yaml parser does not do this, but we do it here
 		res := task.run(device)
 		switch res.status {
 		case Ok:

@@ -18,6 +18,7 @@ func newJumpstarter(ttyname string, version string, serial string) JumpstarterDe
 		name:           "",
 		storage:        "",
 		tags:           []string{},
+		consoleMode:    true, // let's asume it's in console mode so we will force exit at start
 	}
 	jp.readConfig()
 	return jp

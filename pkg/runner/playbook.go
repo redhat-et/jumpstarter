@@ -1,12 +1,14 @@
 package runner
 
+import "fmt"
+
 // yaml parser
 
 type JumpstarterPlaybook struct {
 	Name          string            `yaml:"name"`
 	Tags          []string          `yaml:"tags"`
 	Drivers       []string          `yaml:"drivers"`
-	ExpectTimeout int               `yaml:"expect-timeout"`
+	ExpectTimeout uint              `yaml:"expect-timeout"`
 	Tasks         []JumpstarterTask `yaml:"tasks"`
 	Cleanup       []JumpstarterTask `yaml:"cleanup"`
 }
@@ -22,6 +24,7 @@ type JumpstarterTask struct {
 	Power                *PowerTask                `yaml:"power,omitempty"`
 	LoginAndGetInventory *LoginAndGetInventoryTask `yaml:"login-and-get-inventory,omitempty"`
 	AnsiblePlaybook      *AnsiblePlaybookTask      `yaml:"ansible-playbook,omitempty"`
+	parent               *JumpstarterPlaybook
 }
 
 type SetDiskImageTask struct {
@@ -30,11 +33,13 @@ type SetDiskImageTask struct {
 }
 
 type ExpectTask struct {
-	This    string `yaml:"string"`
-	Fatal   string `yaml:"fatal"`
-	Send    string `yaml:"send"`
-	Timeout uint   `yaml:"timeout"`
-	DelayMs uint   `yaml:"delay_ms"`
+	This         string `yaml:"this"`
+	Fatal        string `yaml:"fatal"`
+	Send         string `yaml:"send"`
+	Echo         bool   `default:"true" yaml:"echo"`
+	DebugEscapes bool   `default:"true" yaml:"debug_escapes"`
+	Timeout      uint   `yaml:"timeout"`
+	DelayMs      uint   `yaml:"delay_ms"`
 }
 
 type SendTask struct {
@@ -89,7 +94,7 @@ func (p *JumpstarterTask) getName() string {
 	case p.SetDiskImage != nil:
 		return "set-disk-image"
 	case p.Expect != nil:
-		return "expect"
+		return fmt.Sprintf("expect: %q", p.Expect.This) // we should add a getName method instead
 	case p.Send != nil:
 		return "send"
 	case p.Storage != nil:

@@ -25,6 +25,7 @@ func (t *PowerTask) run(device harness.Device) TaskResult {
 				err:    err,
 			}
 		}
+		time.Sleep(2 * time.Second)
 	case "cycle":
 		err := device.Power(false)
 		if err != nil {

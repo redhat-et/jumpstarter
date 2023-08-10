@@ -2,9 +2,9 @@ package jumpstarter_board
 
 import (
 	"fmt"
-	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"go.bug.st/serial"
@@ -22,6 +22,7 @@ type JumpstarterDevice struct {
 	storage        string
 	tags           []string
 	busy           bool
+	consoleMode    bool
 }
 
 func (d *JumpstarterDevice) Lock() error {
@@ -52,9 +53,52 @@ func (d *JumpstarterDevice) Power(on bool) error {
 	return nil
 }
 
-func (d *JumpstarterDevice) Console() (io.ReadWriteCloser, error) {
+type JumpstarterConsoleWrapper struct {
+	serialPort        serial.Port
+	jumpstarterDevice *JumpstarterDevice
+}
+
+func (c *JumpstarterDevice) getConsoleWrapper() harness.ConsoleInterface {
+	return &JumpstarterConsoleWrapper{
+		serialPort:        c.serialPort,
+		jumpstarterDevice: c,
+	}
+}
+
+func (c *JumpstarterConsoleWrapper) Write(p []byte) (n int, err error) {
+	if c.serialPort == nil {
+		return 0, fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
+	}
+	return c.serialPort.Write(p)
+}
+
+func (c *JumpstarterConsoleWrapper) Read(p []byte) (n int, err error) {
+	if c.serialPort == nil {
+		return 0, fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
+	}
+	return c.serialPort.Read(p)
+}
+
+func (c *JumpstarterConsoleWrapper) Close() error {
+	err := c.jumpstarterDevice.exitConsole()
+	c.serialPort = nil
+	return err
+}
+
+func (c *JumpstarterConsoleWrapper) SetReadTimeout(t time.Duration) error {
+	if c.serialPort == nil {
+		return fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
+	}
+	return c.serialPort.SetReadTimeout(t)
+}
+
+func (d *JumpstarterDevice) Console() (harness.ConsoleInterface, error) {
 	if err := d.ensureSerial(); err != nil {
 		return nil, fmt.Errorf("Console: %w", err)
+	}
+
+	if d.consoleMode {
+		return d.getConsoleWrapper(), nil
 	}
 
 	if err := d.exitConsole(); err != nil {
@@ -65,7 +109,9 @@ func (d *JumpstarterDevice) Console() (io.ReadWriteCloser, error) {
 		return nil, fmt.Errorf("Console: %w", err)
 	}
 
-	return d.serialPort, nil
+	d.consoleMode = true
+
+	return d.getConsoleWrapper(), nil
 }
 
 func (d *JumpstarterDevice) SetConsoleSpeed(bps int) error {
