@@ -18,45 +18,66 @@ func TestPlaybookParsing(t *testing.T) {
     - name: "Load image"
       set-disk-image:
         image: "my-rhel9.3-aarch64-with-kmods.iso"
-    
-    - name: "Attach storage"
-      storage:
-        attached: true
-    
+        attach_storage: true
+
     - name: "Power on"
       power:
         action: cycle
-    
-    - expect: 
+
+    - expect:
         this: "Press ESCAPE for boot options"
-        send: "<esc>"
-    
+        send: "\e"
+
     - uefi-go-to:
         option: "Boot Manager"
     - uefi-go-to:
         option: "UEFI {{ StorageName }}" # find ansible variable insertion
-      
-    - expect: 
-        this: "GRUB version"
-        send: "<up-arrow>e<down-arrow><down-arrow><CTRL-E> inst.ks=...."
 
-    - expect: 
+    - name: "Interact with GRUB to setup special install parameters, just an example"
+      expect:
+        this: "GRUB version"
+        send: "\e"
+    - send:
+        delay_ms: 100 # delay before and between each send sequence
+        this:
+          - "<UP>"
+          - "e"
+          - "<DOWN>"
+          - "<DOWN>"
+          - "<CTRL-E>"
+          - " inst.text console=ttyS0,115200"
+          - "<F10>"
+
+    - expect:
+        timeout: 1800 # 30 minutes
+        fatal: "Unrecoverable error happened" # if this string is found, we will fail
         this: "Install finished"
+        send: "\n"
 
     - name: "Detach storage"
       storage:
-        connected: false
+        attached: false
 
-    - login-and-get-inventory:
-        user: "root"
-        password: "{{ env.password }}"
+    - power:
+        action: cycle
+
+    - login-and-get-inventory:    # This will wait for the login sequency,
+        user: "root"              # then gather the inventory for network connection
+        password: "{{ env.IMAGE_PASSWORD }}"
         inventory: "inventory.json"
 
     - ansible_playbook:
         playbook: test-kmods.yaml
         inventory: "inventory.json"
-        extra_args: 
-      
+        extra_args:
+  cleanup:
+    - name: "Power off"
+      power:
+        action: off
+
+    - name: "Detach storage"
+      storage:
+        attached: false
 `
 	// parse yaml file into a JumpstarterPlaybook struct
 	playbooks := []JumpstarterPlaybook{}
@@ -74,7 +95,7 @@ func TestPlaybookParsing(t *testing.T) {
 		t.Errorf("Expected 1 playbook, got %d", len(playbooks))
 	}
 
-	if len(playbooks[0].Tasks) != 11 {
+	if len(playbooks[0].Tasks) != 12 {
 		t.Errorf("Expected 12 tasks, got %d", len(playbooks[0].Tasks))
 	}
 }

@@ -3,16 +3,12 @@ package runner
 // yaml parser
 
 type JumpstarterPlaybook struct {
-	// name of the playbook
-	Name string `yaml:"name"`
-	// list of tags to match
-	Tags []string `yaml:"tags"`
-	// list of drivers to match
-	Drivers []string `yaml:"drivers"`
-	// expect-timeout
-	ExpectTimeout int `yaml:"expect-timeout"`
-	// list of tasks to execute
-	Tasks []JumpstarterTask `yaml:"tasks"`
+	Name          string            `yaml:"name"`
+	Tags          []string          `yaml:"tags"`
+	Drivers       []string          `yaml:"drivers"`
+	ExpectTimeout int               `yaml:"expect-timeout"`
+	Tasks         []JumpstarterTask `yaml:"tasks"`
+	Cleanup       []JumpstarterTask `yaml:"cleanup"`
 }
 
 type JumpstarterTask struct {
@@ -20,6 +16,7 @@ type JumpstarterTask struct {
 	Name                 string                    `yaml:"name"`
 	SetDiskImage         *SetDiskImageTask         `yaml:"set-disk-image,omitempty"`
 	Expect               *ExpectTask               `yaml:"expect,omitempty"`
+	Send                 *SendTask                 `yaml:"send,omitempty"`
 	Storage              *StorageTask              `yaml:"storage,omitempty"`
 	UefiGoTo             *UefiGoToTask             `yaml:"uefi-go-to,omitempty"`
 	Power                *PowerTask                `yaml:"power,omitempty"`
@@ -28,16 +25,25 @@ type JumpstarterTask struct {
 }
 
 type SetDiskImageTask struct {
-	Image string `yaml:"image"`
+	Image         string `yaml:"image"`
+	AttachStorage bool   `yaml:"attach_storage"`
 }
 
 type ExpectTask struct {
-	This string `yaml:"string"`
-	Send string `yaml:"send"`
+	This    string `yaml:"string"`
+	Fatal   string `yaml:"fatal"`
+	Send    string `yaml:"send"`
+	Timeout uint   `yaml:"timeout"`
+	DelayMs uint   `yaml:"delay_ms"`
+}
+
+type SendTask struct {
+	This    []string `yaml:"string"`
+	DelayMs uint     `yaml:"delay_ms"`
 }
 
 type StorageTask struct {
-	Attach bool `yaml:"attach"`
+	Attached bool `yaml:"attached"`
 }
 
 type UefiGoToTask struct {
