@@ -44,6 +44,38 @@ func RunPlaybook(device_id, driver, yaml_file string) error {
 	return playbook.run(device)
 }
 
+func (p *JumpstarterTask) run(device harness.Device) TaskResult {
+	printHeader("TASK", p.getName())
+	switch {
+	case p.SetDiskImage != nil:
+		return p.SetDiskImage.run(device)
+		/*
+			case p.Expect != nil:
+				return p.Expect.run(device)
+			case p.Send != nil:
+				return p.Send.run(device)
+		*/
+	case p.Storage != nil:
+		return p.Storage.run(device)
+		/*
+			case p.UefiGoTo != nil:
+				return p.UefiGoTo.run(device)
+		*/
+	case p.Power != nil:
+		return p.Power.run(device)
+		/*
+			case p.LoginAndGetInventory != nil:
+				return p.LoginAndGetInventory.run(device)
+			case p.AnsiblePlaybook != nil:
+				return p.AnsiblePlaybook.run(device)
+		*/
+	}
+	return TaskResult{
+		status: Fatal,
+		err:    fmt.Errorf("Invalid task: %s", p.getName()),
+	}
+}
+
 func (p *JumpstarterPlaybook) getDevice(device_id string, device harness.Device, driver string) (harness.Device, error) {
 	if device_id != "" {
 

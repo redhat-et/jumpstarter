@@ -4,6 +4,9 @@
     - 8gb
   expect-timeout: 60
   tasks:
+    - name: "Power off"
+      power:
+        action: off
     - name: "Load image"
       set-disk-image:
         image: "isos/RHEL-9.3.0-20230809.27-aarch64-boot.iso"
@@ -14,7 +17,7 @@
 
     - name: "Power on"
       power:
-        action: cycle
+        action: on
 
     - expect:
         this: "Press ESCAPE for boot options"
