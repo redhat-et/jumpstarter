@@ -1,5 +1,5 @@
 
-jumpstarter: main.go pkg/drivers/jumpstarter-board/*.go pkg/harness/*.go cmd/*.go
+jumpstarter: main.go pkg/drivers/jumpstarter-board/*.go pkg/runner/* pkg/harness/*.go cmd/*.go
 	go build
 
 fmt:

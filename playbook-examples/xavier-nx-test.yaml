@@ -6,30 +6,30 @@
   tasks:
     - name: "Load image"
       set-disk-image:
-        image: "my-rhel9.3-aarch64-with-kmods.iso"
-    
+        image: "isos/RHEL-9.3.0-20230809.27-aarch64-boot.iso"
+
     - name: "Attach storage"
       storage:
         attached: true
-    
+
     - name: "Power on"
       power:
         action: cycle
-    
-    - expect: 
+
+    - expect:
         this: "Press ESCAPE for boot options"
         send: "<esc>"
-    
+
     - uefi-go-to:
         option: "Boot Manager"
     - uefi-go-to:
         option: "UEFI {{ StorageName }}" # find ansible variable insertion
-      
-    - expect: 
+
+    - expect:
         this: "GRUB version"
         send: "<up-arrow>e<down-arrow><down-arrow><CTRL-E> inst.ks=...."
 
-    - expect: 
+    - expect:
         this: "Install finished"
 
     - name: "Detach storage"
@@ -44,5 +44,5 @@
     - ansible_playbook:
         playbook: test-kmods.yaml
         inventory: "inventory.json"
-        extra_args: 
-      
+        extra_args:
+

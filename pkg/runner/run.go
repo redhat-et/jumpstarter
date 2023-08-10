@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
@@ -40,7 +41,7 @@ func RunPlaybook(device_id, driver, yaml_file string) error {
 	fmt.Printf("⚙ Using device %q with tags %v\n", device.Name(), device.Tags())
 	color.Unset()
 
-	return nil
+	return playbook.run(device)
 }
 
 func (p *JumpstarterPlaybook) getDevice(device_id string, device harness.Device, driver string) (harness.Device, error) {
@@ -78,6 +79,48 @@ func (p *JumpstarterPlaybook) getDevice(device_id string, device harness.Device,
 	return device, nil
 }
 
+func (p *JumpstarterPlaybook) runPlaybookTasks(device harness.Device) error {
+	return p.runTasks(&(p.Tasks), device)
+}
+
+func (p *JumpstarterPlaybook) runPlaybookCleanup(device harness.Device) error {
+	return p.runTasks(&(p.Cleanup), device)
+}
+
+func (p *JumpstarterPlaybook) run(device harness.Device) error {
+	printHeader("JUMPSTARTER-PLAY", p.Name)
+
+	errTasks := p.runPlaybookTasks(device)
+	errCleanup := p.runPlaybookCleanup(device)
+	if errTasks != nil || errCleanup != nil {
+		return fmt.Errorf("Errors during playbook run: %w, or during cleanup: %w", errTasks, errCleanup)
+	}
+	return nil
+}
+
+func (p *JumpstarterPlaybook) runTasks(tasks *[]JumpstarterTask, device harness.Device) error {
+
+	for _, task := range *tasks {
+		res := task.run(device)
+		switch res.status {
+		case Ok:
+			color.Set(color.FgHiGreen)
+			fmt.Printf("ok: [%s]\n\n", device.Name())
+			color.Unset()
+		case Changed:
+			color.Set(color.FgYellow)
+			fmt.Printf("changed: [%s]\n\n", device.Name())
+			color.Unset()
+		case Fatal:
+			color.Set(color.FgHiRed)
+			fmt.Printf("failed: [%s]\n\n", device.Name())
+			color.Unset()
+			return fmt.Errorf("runTasks: %w", res.err)
+		}
+	}
+	return nil
+}
+
 func filterOutBusy(devices []harness.Device) []harness.Device {
 	var freeDevices []harness.Device
 	for _, device := range devices {
@@ -98,4 +141,11 @@ func readPlaybook(yaml_file string, playbook *[]JumpstarterPlaybook) error {
 		return fmt.Errorf("readPlaybook(%q): %w", yaml_file, err)
 	}
 	return nil
+}
+
+func printHeader(header, name string) {
+	MAX_WIDTH := 120
+	// TODO: get from tty console where available
+	taskHeader := fmt.Sprintf("%s [%s] ", header, name)
+	fmt.Println(taskHeader, strings.Repeat("=", MAX_WIDTH-len(taskHeader)-1))
 }

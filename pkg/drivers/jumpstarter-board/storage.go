@@ -28,20 +28,19 @@ const (
 
 func (d *JumpstarterDevice) SetDiskImage(path string) error {
 
-	fmt.Print("Detecting USB storage device and connecting to host: ")
+	fmt.Print("🔍 Detecting USB storage device and connecting to host: ")
 	diskPath, err := d.detectStorageDevice()
 	if err != nil {
 		return fmt.Errorf("SetDiskImage: %w", err)
 	}
 	fmt.Println("done")
 
-	fmt.Printf("%s -> %s: \n", path, diskPath)
+	fmt.Printf("📋 %s -> %s: \n", path, diskPath)
 
 	if err := writeImageToDisk(path, diskPath); err != nil {
 		return fmt.Errorf("SetDiskImage: %w", err)
 	}
 
-	fmt.Print("Connecting storage to device under test.. ")
 	if err := d.connectStorageTo(OFF); err != nil {
 		return fmt.Errorf("SetDiskImage: %w", err)
 	}
@@ -186,7 +185,7 @@ func writeImageToDisk(imagePath string, diskPath string) error {
 		bytesCopied += n
 		MBCopied := bytesCopied / 1024 / 1024
 		MBPerSec := float64(MBCopied) / elapsed.Seconds()
-		fmt.Printf("\r%d MB copied %.2f MB/s         ", MBCopied, MBPerSec)
+		fmt.Printf("\r💾 %d MB copied %.2f MB/s         ", MBCopied, MBPerSec)
 	}
 	outputFile.Close()
 	fmt.Println()
