@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com
+Copyright © 2023 Miguel Angel Ajo Pelayo <majopela@redhat.com>
 */
 package cmd
 
@@ -45,16 +45,14 @@ func printDeviceTable(devices []harness.Device) {
 	fmt.Println("Device Name\tSerial Number\tDriver\t\t\tVersion\tDevice\t\tTags")
 	color.Unset()
 	for _, device := range devices {
-		deviceName, err := device.Name()
-		handleErrorAsFatal(err)
+		deviceName := device.Name()
 		deviceSerial, err := device.Serial()
 		handleErrorAsFatal(err)
 		deviceVersion, err := device.Version()
 		handleErrorAsFatal(err)
 		dev, err := device.Device()
 		handleErrorAsFatal(err)
-		tags, err := device.Tags()
-		handleErrorAsFatal(err)
+		tags := device.Tags()
 		str_tags := strings.Join(tags, ", ")
 
 		fmt.Printf("%s\t%s\t%s\t%s\t%s\t%s\n",
@@ -64,8 +62,7 @@ func printDeviceTable(devices []harness.Device) {
 
 func printDeviceNames(devices []harness.Device) {
 	for _, device := range devices {
-		deviceName, err := device.Name()
-		handleErrorAsFatal(err)
+		deviceName := device.Name()
 		fmt.Printf("%s\n", deviceName)
 	}
 }

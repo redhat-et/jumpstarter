@@ -23,9 +23,14 @@ func newJumpstarter(ttyname string, version string, serial string) JumpstarterDe
 	return jp
 }
 
+func (d *JumpstarterDevice) IsBusy() (bool, error) {
+	return d.busy, nil
+}
+
 func (d *JumpstarterDevice) readConfig() error {
 	if err := d.ensureSerial(); err != nil {
 		d.name = "**BUSY**"
+		d.busy = true
 		return nil
 	}
 
@@ -93,8 +98,8 @@ func (d *JumpstarterDevice) SetName(name string) error {
 	return nil
 }
 
-func (d *JumpstarterDevice) Name() (string, error) {
-	return d.name, nil
+func (d *JumpstarterDevice) Name() string {
+	return d.name
 }
 
 func (d *JumpstarterDevice) SetTags(tags []string) error {
@@ -114,6 +119,6 @@ func (d *JumpstarterDevice) SetTags(tags []string) error {
 	return nil
 }
 
-func (d *JumpstarterDevice) Tags() ([]string, error) {
-	return d.tags, nil
+func (d *JumpstarterDevice) Tags() []string {
+	return d.tags
 }

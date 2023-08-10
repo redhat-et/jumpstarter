@@ -11,8 +11,8 @@ type Device interface {
 	Console() (io.ReadWriteCloser, error)
 	SetConsoleSpeed(bps int) error
 	Version() (string, error)
-	Name() (string, error)     // name of the device, can be assigned by the user
-	Tags() ([]string, error)   // tags assigned to the device, can be assigned by the user
+	Name() string              // name of the device, can be assigned by the user
+	Tags() []string            // tags assigned to the device, can be assigned by the user
 	SetName(name string) error // set the name of the device, should be stored in config or flashed to device
 	SetTags(tags []string) error
 	Serial() (string, error)
@@ -20,6 +20,9 @@ type Device interface {
 	AttachStorage(connect bool) error
 	SetControl(key string, value string) error
 	Device() (string, error)
+	IsBusy() (bool, error)
+	Lock() error   // open/lock the device so other instances cannot use it
+	Unlock() error // close the locked device so other instances can use it
 }
 
 // basic errors

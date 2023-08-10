@@ -1,0 +1,48 @@
+- name: "Test Jetson kmods"
+  tags:
+    - xavier-nx
+    - 8gb
+  expect-timeout: 60
+  tasks:
+    - name: "Load image"
+      set-disk-image:
+        image: "my-rhel9.3-aarch64-with-kmods.iso"
+    
+    - name: "Attach storage"
+      storage:
+        attached: true
+    
+    - name: "Power on"
+      power:
+        action: cycle
+    
+    - expect: 
+        this: "Press ESCAPE for boot options"
+        send: "<esc>"
+    
+    - uefi-go-to:
+        option: "Boot Manager"
+    - uefi-go-to:
+        option: "UEFI {{ StorageName }}" # find ansible variable insertion
+      
+    - expect: 
+        this: "GRUB version"
+        send: "<up-arrow>e<down-arrow><down-arrow><CTRL-E> inst.ks=...."
+
+    - expect: 
+        this: "Install finished"
+
+    - name: "Detach storage"
+      storage:
+        connected: false
+
+    - login-and-get-inventory:
+        user: "root"
+        password: "{{ env.password }}"
+        inventory: "inventory.json"
+
+    - ansible_playbook:
+        playbook: test-kmods.yaml
+        inventory: "inventory.json"
+        extra_args: 
+      

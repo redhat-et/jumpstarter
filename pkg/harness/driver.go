@@ -40,10 +40,7 @@ func FindDevices(driverName string, tags []string) ([]Device, error) {
 		}
 		for _, device := range d {
 			if len(tags) != 0 {
-				deviceTags, err := device.Tags()
-				if err != nil {
-					return nil, fmt.Errorf("(%q).Tags: %w", driver.Name(), err)
-				}
+				deviceTags := device.Tags()
 				if contains_tags(deviceTags, tags) {
 					devices = append(devices, device)
 				}
@@ -84,10 +81,7 @@ func FindDevice(driverName string, deviceId string) (Device, error) {
 	}
 
 	for _, device := range devices {
-		name, err := device.Name()
-		if err != nil {
-			return nil, fmt.Errorf("FindDevice (%q).Name: %w", device.Driver().Name(), err)
-		}
+		name := device.Name()
 
 		serialNumber, err := device.Serial()
 		if err != nil {

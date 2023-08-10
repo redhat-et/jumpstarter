@@ -24,6 +24,14 @@ type JumpstarterDevice struct {
 	busy           bool
 }
 
+func (d *JumpstarterDevice) Lock() error {
+	return d.ensureSerial()
+}
+
+func (d *JumpstarterDevice) Unlock() error {
+	return d.closeSerial()
+}
+
 func (d *JumpstarterDevice) Power(on bool) error {
 	if err := d.ensureSerial(); err != nil {
 		return fmt.Errorf("Power(%v): %w", on, err)
