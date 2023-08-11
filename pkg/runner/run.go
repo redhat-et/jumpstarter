@@ -33,7 +33,7 @@ func RunPlaybook(device_id, driver, yaml_file string) error {
 
 	// TODO implement retry/wait
 	//      sometimes devices are busy or can happen fail due to a race condition
-	device, err := playbook.getDevice(device_id, device, driver)
+	device, err := playbook.getDevice(device_id, driver)
 	if err != nil {
 		return fmt.Errorf("RunPlaybook: %w", err)
 	}
@@ -55,10 +55,10 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 			p.Expect.Timeout = uint(p.parent.ExpectTimeout)
 		}
 		return p.Expect.run(device)
-		/*
-			case p.Send != nil:
-				return p.Send.run(device)
-		*/
+
+	case p.Send != nil:
+		return p.Send.run(device)
+
 	case p.Storage != nil:
 		return p.Storage.run(device)
 		/*
@@ -76,18 +76,17 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 	}
 	return TaskResult{
 		status: Fatal,
-		err:    fmt.Errorf("Invalid task: %s", p.getName()),
+		err:    fmt.Errorf("invalid task: %s", p.getName()),
 	}
 }
 
-func (p *JumpstarterPlaybook) getDevice(device_id string, device harness.Device, driver string) (harness.Device, error) {
+func (p *JumpstarterPlaybook) getDevice(device_id string, driver string) (harness.Device, error) {
 	if device_id != "" {
-
-		var err error
-		device, err = harness.FindDevice(driver, device_id)
+		device, err := harness.FindDevice(driver, device_id)
 		if err != nil {
 			return nil, fmt.Errorf("getDevice: %w", err)
 		}
+		return device, nil
 	} else {
 
 		devices, err := harness.FindDevices(driver, p.Tags)
@@ -106,13 +105,13 @@ func (p *JumpstarterPlaybook) getDevice(device_id string, device harness.Device,
 			return nil, fmt.Errorf("getDevice: all devices are busy")
 		}
 
-		device = nonBusy[rand.Intn(len(nonBusy))]
+		device := nonBusy[rand.Intn(len(nonBusy))]
 		if err := device.Lock(); err != nil {
 
 			return nil, fmt.Errorf("getDevice: tried to open a device: %w", err)
 		}
+		return device, nil
 	}
-	return device, nil
 }
 
 func (p *JumpstarterPlaybook) runPlaybookTasks(device harness.Device) error {
@@ -120,6 +119,7 @@ func (p *JumpstarterPlaybook) runPlaybookTasks(device harness.Device) error {
 }
 
 func (p *JumpstarterPlaybook) runPlaybookCleanup(device harness.Device) error {
+	printHeader("CLEANUPS", p.Name)
 	return p.runTasks(&(p.Cleanup), device)
 }
 
@@ -128,8 +128,16 @@ func (p *JumpstarterPlaybook) run(device harness.Device) error {
 
 	errTasks := p.runPlaybookTasks(device)
 	errCleanup := p.runPlaybookCleanup(device)
-	if errTasks != nil || errCleanup != nil {
-		return fmt.Errorf("Errors during playbook run: %w, or during cleanup: %w", errTasks, errCleanup)
+
+	if errCleanup != nil {
+		if errTasks != nil {
+			return fmt.Errorf("errors during playbook run %w and cleanup: %w", errTasks, errCleanup)
+		} else {
+			return fmt.Errorf("errors during playbook cleanup: %w", errCleanup)
+		}
+	}
+	if errTasks != nil {
+		return fmt.Errorf("errors during playbook run: %w", errTasks)
 	}
 	return nil
 }
@@ -171,7 +179,7 @@ func filterOutBusy(devices []harness.Device) []harness.Device {
 func readPlaybook(yaml_file string, playbook *[]JumpstarterPlaybook) error {
 	playbook_data, err := os.ReadFile(yaml_file)
 	if err != nil {
-		return fmt.Errorf("readPlaybook(%q): Error reading yaml file: %w\n", yaml_file, err)
+		return fmt.Errorf("readPlaybook(%q): Error reading yaml file: %w", yaml_file, err)
 	}
 
 	if err := yaml.Unmarshal([]byte(playbook_data), &playbook); err != nil {

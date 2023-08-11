@@ -20,38 +20,32 @@
         action: on
 
     - expect:
-        this: "F11   to enter Boot Manager Menu."
-        send: "<ENTER>"
-        echo: true
-        debug_escapes: true
-
-    - expect:
-        this: "GRUB version"
-        send: "<ENTER>"
-        echo: true
-        debug_escapes: true
-
-    - expect:
-        this: "forever"
-        echo: true
+        this: "Press ESCAPE for boot options"
 
     - send:
         this:
-          - "e"
-          - "<DOWN>"
-          - "<DOWN>"
-          - "<CTRL-E>"
-          - "inst.vnc console=ttyS0,115200"
           - "<ENTER>"
+
+    - expect:
+        this: "GRUB version"
+
+    - send:
+        this:
+          - "<UP>" # select the main grub entry, no disk test
+          - "e"    # edit it
+          - "<DOWN><DOWN><CTRL-E>" # go down to the kernel line, and end of line
+          - " inst.vnc console=ttyS0,115200" # our addition
+          - "<CTRL-X>" #boot
+
+    - expect:
+        this: "forever"
+        debug_escapes: false
 
     - uefi-go-to:
         option: "Boot Manager"
     - uefi-go-to:
         option: "UEFI {{ StorageName }}" # find ansible variable insertion
 
-    - expect:
-        this: "GRUB version"
-        send: "<up-arrow>e<down-arrow><down-arrow><CTRL-E> inst.ks=...."
 
     - expect:
         this: "Install finished"
@@ -69,4 +63,11 @@
         playbook: test-kmods.yaml
         inventory: "inventory.json"
         extra_args:
+  cleanup:
+    - name: "Power off"
+      power:
+        action: off
+    - name: "Detach storage"
+      storage:
+        connected: false
 

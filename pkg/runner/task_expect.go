@@ -3,7 +3,6 @@ package runner
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -39,6 +38,10 @@ func (t *ExpectTask) run(device harness.Device) TaskResult {
 		}
 		if n == 0 {
 			if time.Since(startTime).Seconds() > timeout {
+				color.Set(color.FgRed)
+				fmt.Printf("\n\nexpecting %q and timed out after %d seconds.\n", expected, t.Timeout)
+				color.Unset()
+
 				return TaskResult{
 					status: Fatal,
 					err:    fmt.Errorf("Expect:run(%q) timeout", expected),
@@ -53,7 +56,7 @@ func (t *ExpectTask) run(device harness.Device) TaskResult {
 				// flush stdout
 				os.Stdout.Sync()
 			} else {
-				os.Stdout.Write([]byte("<ESC>"))
+				os.Stdout.Write([]byte("\n<ESC>"))
 			}
 			os.Stdout.Sync()
 		}
@@ -69,68 +72,10 @@ func (t *ExpectTask) run(device harness.Device) TaskResult {
 		}
 	}
 
-	if t.Send != "" {
-		console.Write([]byte(sendStringParser(t.Send)))
-		if t.Echo {
-			color.Set(color.FgYellow)
-			fmt.Println("\n\nsent:", t.Send)
-			color.Unset()
-		}
-	}
-
 	fmt.Println("")
 
 	return TaskResult{
 		status: Ok,
 		err:    nil,
-	}
-}
-
-func sendStringParser(send string) string {
-	switch strings.ToUpper(send) {
-	case "<ESC>":
-		return "\x1b"
-	case "<F1>":
-		return "\x1bOP"
-	case "<F2>":
-		return "\x1bOQ"
-	case "<F3>":
-		return "\x1bOR"
-	case "<F4>":
-		return "\x1bOS"
-	case "<F5>":
-		return "\x1b[15~"
-	case "<F6>":
-		return "\x1b[17~"
-	case "<F7>":
-		return "\x1b[18~"
-	case "<F8>":
-		return "\x1b[19~"
-	case "<F9>":
-		return "\x1b[20~"
-	case "<F10>":
-		return "\x1b[21~"
-	case "<F11>":
-		return "\x1b[23~"
-	case "<UP>":
-		return "\x1b[A"
-	case "<DOWN>":
-		return "\x1b[B"
-	case "<LEFT>":
-		return "\x1b[D"
-	case "<RIGHT>":
-		return "\x1b[C"
-	case "<ENTER>":
-		return "\r\n"
-	case "<TAB>":
-		return "\t"
-	case "<BACKSPACE>":
-		return "\x7f"
-	case "<DELETE>":
-		return "\x1b[3~"
-	case "<CTRL+E>":
-		return "\x05"
-	default:
-		return send
 	}
 }

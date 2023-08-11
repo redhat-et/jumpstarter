@@ -1,6 +1,10 @@
 package runner
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/creasty/defaults"
+)
 
 // yaml parser
 
@@ -35,16 +39,36 @@ type SetDiskImageTask struct {
 type ExpectTask struct {
 	This         string `yaml:"this"`
 	Fatal        string `yaml:"fatal"`
-	Send         string `yaml:"send"`
 	Echo         bool   `default:"true" yaml:"echo"`
 	DebugEscapes bool   `default:"true" yaml:"debug_escapes"`
 	Timeout      uint   `yaml:"timeout"`
-	DelayMs      uint   `yaml:"delay_ms"`
+}
+
+func (e *ExpectTask) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	defaults.Set(e)
+	type plain ExpectTask
+	if err := unmarshal((*plain)(e)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type SendTask struct {
-	This    []string `yaml:"string"`
-	DelayMs uint     `yaml:"delay_ms"`
+	This         []string `yaml:"this"`
+	DelayMs      uint     `default:"100" yaml:"delay_ms"`
+	Echo         bool     `default:"true" yaml:"echo"`
+	DebugEscapes bool     `default:"true" yaml:"debug_escapes"`
+}
+
+func (s *SendTask) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	defaults.Set(s)
+	type plain SendTask
+	if err := unmarshal((*plain)(s)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type StorageTask struct {

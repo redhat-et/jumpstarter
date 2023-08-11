@@ -14,7 +14,7 @@ import (
 
 const BASE_DISKSBYID = "/dev/disk/by-id/"
 
-const BLOCK_SIZE = 32 * 1024 * 1024
+const BLOCK_SIZE = 64 * 1024 * 1024
 
 const WAIT_TIME_USB_STORAGE = 2 * time.Second
 
@@ -189,6 +189,7 @@ func writeImageToDisk(imagePath string, diskPath string) error {
 	}
 	outputFile.Close()
 	fmt.Println()
+	time.Sleep(WAIT_TIME_USB_STORAGE)
 	err = exec.Command("udisksctl", "power-off", "-b", diskPath).Run()
 	if err != nil {
 		return fmt.Errorf("writeImageToDisk: %w", err)

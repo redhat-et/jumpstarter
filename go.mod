@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect
+	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/deckarep/golang-set/v2 v2.3.0 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
