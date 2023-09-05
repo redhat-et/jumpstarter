@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -108,7 +109,8 @@ func scanForStorageDevices(prefix string) (*mapset.Set[string], error) {
 
 		if info.Mode()&os.ModeSymlink != 0 {
 			baseName := filepath.Base(path)
-			if strings.HasPrefix(baseName, prefix) {
+			re := regexp.MustCompile(`part\d+$`)
+			if strings.HasPrefix(baseName, prefix) && !re.MatchString(baseName) {
 				diskSet.Add(path)
 			}
 		}
