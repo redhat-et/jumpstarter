@@ -2,8 +2,13 @@ package jumpstarter_board
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
+	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"go.bug.st/serial"
 )
 
@@ -136,4 +141,103 @@ func (d *JumpstarterDevice) expect(expected string) error {
 		}
 	}
 	return nil
+}
+
+func (d *JumpstarterDevice) inBandConsole() (harness.ConsoleInterface, error) {
+	if err := d.ensureSerial(); err != nil {
+		return nil, fmt.Errorf("Console: %w", err)
+	}
+
+	if d.consoleMode {
+		return d.getConsoleWrapper(), nil
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return nil, fmt.Errorf("Console: %w", err)
+	}
+
+	if err := d.sendAndExpectNoPrompt("console", "Entering console mode, type CTRL+B 5 times to exit\r\n"); err != nil {
+		return nil, fmt.Errorf("Console: %w", err)
+	}
+
+	d.consoleMode = true
+
+	return d.getConsoleWrapper(), nil
+}
+
+func (d *JumpstarterDevice) outOfBandConsole() (harness.ConsoleInterface, error) {
+	// TODO: in most cases the oob console would go away when we power off the device
+	// so we need to add a wrapper to try reopening the port when it's gone away
+	if d.oobSerialPort != nil {
+		return d.oobSerialPort, nil
+	}
+
+	start := time.Now()
+	max_wait_time := 15 * time.Second
+
+	fmt.Println("Looking up for out-of-band console: ", d.usb_console)
+
+	for {
+		devices, err := scanForSerialDevices(d.usb_console)
+		if err != nil {
+			return nil, fmt.Errorf("outOfBandConsole: %w", err)
+		}
+		if devices.Cardinality() > 1 {
+			return nil, fmt.Errorf("outOfBandConsole: more than one device found: %v", devices)
+		}
+		if devices.Cardinality() == 1 {
+			dev, _ := devices.Pop()
+			mode := &serial.Mode{
+				BaudRate: 115200,
+			}
+			if d.serialPort != nil {
+				d.serialPort.Close()
+			}
+			port, err := serial.Open(dev, mode)
+			if err != nil {
+				return nil, fmt.Errorf("outOfBandConsole: openSerial: %w", err)
+			}
+			d.oobSerialPort = port
+			return d.oobSerialPort, nil
+		}
+
+		if time.Since(start) > max_wait_time {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	return nil, fmt.Errorf("outOfBandConsole: timeout waiting for serial device containing %s, "+
+		"please note that out-of-band consoles usually require the device to be powered on", d.usb_console)
+}
+
+const BASE_SERIALSBYID = "/dev/serial/by-id/"
+
+func scanForSerialDevices(substring string) (mapset.Set[string], error) {
+
+	interfaceSet := mapset.NewSet[string]()
+
+	err := filepath.Walk(BASE_SERIALSBYID, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() && info.Name() == "devices" {
+			return nil
+		}
+
+		if info.Mode()&os.ModeSymlink != 0 {
+			baseName := filepath.Base(path)
+
+			if strings.Contains(baseName, substring) {
+				interfaceSet.Add(path)
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("scanForSerialDevices: %w", err)
+	}
+
+	return interfaceSet, nil
 }

@@ -73,7 +73,10 @@ func (d *JumpstarterDevice) readConfig() error {
 			d.tags = strings.Split(strings.ToLower(strings.TrimSpace(strings.TrimPrefix(line, "tags:"))), ",")
 		}
 		if strings.HasPrefix(line, "storage:") {
-			d.storage = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(line, "storage:")))
+			d.storage = strings.TrimSpace(strings.TrimPrefix(line, "storage:"))
+		}
+		if strings.HasPrefix(line, "usb_console:") {
+			d.usb_console = strings.TrimSpace(strings.TrimPrefix(line, "usb_console:"))
 		}
 	}
 	if d.name == "" {
@@ -99,6 +102,21 @@ func (d *JumpstarterDevice) SetName(name string) error {
 	return nil
 }
 
+func (d *JumpstarterDevice) SetUsbConsole(console_substring string) error {
+	if err := d.ensureSerial(); err != nil {
+		return fmt.Errorf("SetUsbConsole(%v): %w", console_substring, err)
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return fmt.Errorf("SetUsbConsole(%v): %w", console_substring, err)
+	}
+
+	if err := d.sendAndExpect("set-config usb_console "+console_substring, "Set usb_console to "+console_substring); err != nil {
+		return fmt.Errorf("SetUsbConsole(%v) %w", console_substring, err)
+	}
+
+	return nil
+}
 func (d *JumpstarterDevice) Name() string {
 	return d.name
 }

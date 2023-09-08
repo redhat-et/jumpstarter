@@ -17,9 +17,10 @@ type Device interface {
 	Console() (ConsoleInterface, error)
 	SetConsoleSpeed(bps int) error
 	Version() (string, error)
-	Name() string              // name of the device, can be assigned by the user
-	Tags() []string            // tags assigned to the device, can be assigned by the user
-	SetName(name string) error // set the name of the device, should be stored in config or flashed to device
+	Name() string                    // name of the device, can be assigned by the user
+	Tags() []string                  // tags assigned to the device, can be assigned by the user
+	SetName(name string) error       // set the name of the device, should be stored in config or flashed to device
+	SetUsbConsole(name string) error // set the substring of an out of band console name for this device
 	SetTags(tags []string) error
 	Serial() (string, error)
 	SetDiskImage(path string) error

@@ -20,6 +20,8 @@ type JumpstarterDevice struct {
 	singletonMutex *sync.Mutex
 	name           string
 	storage        string
+	oobSerialPort  serial.Port
+	usb_console    string
 	tags           []string
 	busy           bool
 	consoleMode    bool
@@ -93,25 +95,11 @@ func (c *JumpstarterConsoleWrapper) SetReadTimeout(t time.Duration) error {
 }
 
 func (d *JumpstarterDevice) Console() (harness.ConsoleInterface, error) {
-	if err := d.ensureSerial(); err != nil {
-		return nil, fmt.Errorf("Console: %w", err)
+	fmt.Println("Console ", d.usb_console)
+	if d.usb_console == "" {
+		return d.inBandConsole()
 	}
-
-	if d.consoleMode {
-		return d.getConsoleWrapper(), nil
-	}
-
-	if err := d.exitConsole(); err != nil {
-		return nil, fmt.Errorf("Console: %w", err)
-	}
-
-	if err := d.sendAndExpectNoPrompt("console", "Entering console mode, type CTRL+B 5 times to exit\r\n"); err != nil {
-		return nil, fmt.Errorf("Console: %w", err)
-	}
-
-	d.consoleMode = true
-
-	return d.getConsoleWrapper(), nil
+	return d.outOfBandConsole()
 }
 
 func (d *JumpstarterDevice) SetConsoleSpeed(bps int) error {
