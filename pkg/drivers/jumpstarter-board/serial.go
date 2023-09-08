@@ -190,8 +190,8 @@ func (d *JumpstarterDevice) outOfBandConsole() (harness.ConsoleInterface, error)
 			mode := &serial.Mode{
 				BaudRate: 115200,
 			}
-			if d.serialPort != nil {
-				d.serialPort.Close()
+			if d.oobSerialPort != nil {
+				d.oobSerialPort.Close()
 			}
 			port, err := serial.Open(dev, mode)
 			if err != nil {
@@ -240,4 +240,43 @@ func scanForSerialDevices(substring string) (mapset.Set[string], error) {
 	}
 
 	return interfaceSet, nil
+}
+
+type JumpstarterConsoleWrapper struct {
+	serialPort        serial.Port
+	jumpstarterDevice *JumpstarterDevice
+}
+
+func (c *JumpstarterDevice) getConsoleWrapper() harness.ConsoleInterface {
+	return &JumpstarterConsoleWrapper{
+		serialPort:        c.serialPort,
+		jumpstarterDevice: c,
+	}
+}
+
+func (c *JumpstarterConsoleWrapper) Write(p []byte) (n int, err error) {
+	if c.serialPort == nil {
+		return 0, fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
+	}
+	return c.serialPort.Write(p)
+}
+
+func (c *JumpstarterConsoleWrapper) Read(p []byte) (n int, err error) {
+	if c.serialPort == nil {
+		return 0, fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
+	}
+	return c.serialPort.Read(p)
+}
+
+func (c *JumpstarterConsoleWrapper) Close() error {
+	err := c.jumpstarterDevice.exitConsole()
+	c.serialPort = nil
+	return err
+}
+
+func (c *JumpstarterConsoleWrapper) SetReadTimeout(t time.Duration) error {
+	if c.serialPort == nil {
+		return fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
+	}
+	return c.serialPort.SetReadTimeout(t)
 }

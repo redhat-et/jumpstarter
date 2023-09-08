@@ -27,6 +27,7 @@ type JumpstarterTask struct {
 	UefiGoTo     *UefiGoToTask     `yaml:"uefi-go-to,omitempty"`
 	Power        *PowerTask        `yaml:"power,omitempty"`
 	Reset        *ResetTask        `yaml:"reset,omitempty"`
+	Pause        *PauseTask        `yaml:"pause,omitempty"`
 	parent       *JumpstarterPlaybook
 }
 
@@ -45,6 +46,10 @@ type ExpectTask struct {
 
 type ResetTask struct {
 	TimeMs uint `yaml:"time_ms"`
+}
+
+type PauseTask struct {
+	Seconds uint `yaml:"seconds"`
 }
 
 func (e *ExpectTask) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -120,6 +125,8 @@ func (p *JumpstarterTask) getName() string {
 		return "power"
 	case p.Reset != nil:
 		return "reset"
+	case p.Pause != nil:
+		return "pause"
 	default:
 		return "unknown"
 	}

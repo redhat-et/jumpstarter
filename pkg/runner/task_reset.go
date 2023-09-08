@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
@@ -8,7 +9,8 @@ import (
 
 func (t *ResetTask) run(device harness.Device) TaskResult {
 
-	err := device.SetControl("reset", "low")
+	fmt.Println("Resetting device...")
+	err := device.SetControl("r", "l")
 	if err != nil {
 		return TaskResult{
 			status: Fatal,
@@ -23,7 +25,7 @@ func (t *ResetTask) run(device harness.Device) TaskResult {
 
 	time.Sleep(time.Duration(ms) * time.Millisecond)
 
-	err = device.SetControl("reset", "z")
+	err = device.SetControl("r", "z")
 	if err != nil {
 		return TaskResult{
 			status: Fatal,

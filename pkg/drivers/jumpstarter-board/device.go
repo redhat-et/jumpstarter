@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"go.bug.st/serial"
@@ -53,45 +52,6 @@ func (d *JumpstarterDevice) Power(on bool) error {
 		}
 	}
 	return nil
-}
-
-type JumpstarterConsoleWrapper struct {
-	serialPort        serial.Port
-	jumpstarterDevice *JumpstarterDevice
-}
-
-func (c *JumpstarterDevice) getConsoleWrapper() harness.ConsoleInterface {
-	return &JumpstarterConsoleWrapper{
-		serialPort:        c.serialPort,
-		jumpstarterDevice: c,
-	}
-}
-
-func (c *JumpstarterConsoleWrapper) Write(p []byte) (n int, err error) {
-	if c.serialPort == nil {
-		return 0, fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
-	}
-	return c.serialPort.Write(p)
-}
-
-func (c *JumpstarterConsoleWrapper) Read(p []byte) (n int, err error) {
-	if c.serialPort == nil {
-		return 0, fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
-	}
-	return c.serialPort.Read(p)
-}
-
-func (c *JumpstarterConsoleWrapper) Close() error {
-	err := c.jumpstarterDevice.exitConsole()
-	c.serialPort = nil
-	return err
-}
-
-func (c *JumpstarterConsoleWrapper) SetReadTimeout(t time.Duration) error {
-	if c.serialPort == nil {
-		return fmt.Errorf("JumpstarterConsoleWrapper: console has been closed")
-	}
-	return c.serialPort.SetReadTimeout(t)
 }
 
 func (d *JumpstarterDevice) Console() (harness.ConsoleInterface, error) {

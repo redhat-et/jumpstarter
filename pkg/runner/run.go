@@ -70,6 +70,9 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 
 	case p.Reset != nil:
 		return p.Reset.run(device)
+
+	case p.Pause != nil:
+		return p.Pause.run(device)
 	}
 	return TaskResult{
 		status: Fatal,
