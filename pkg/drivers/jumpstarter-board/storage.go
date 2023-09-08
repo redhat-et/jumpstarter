@@ -1,6 +1,7 @@
 package jumpstarter_board
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -15,9 +16,10 @@ import (
 
 const BASE_DISKSBYID = "/dev/disk/by-id/"
 
-const BLOCK_SIZE = 64 * 1024 * 1024
+const BLOCK_SIZE = 32 * 1024 * 1024
 
-const WAIT_TIME_USB_STORAGE = 2 * time.Second
+const WAIT_TIME_USB_STORAGE = 6 * time.Second
+const WAIT_TIME_USB_STORAGE_OFF = 2 * time.Second
 
 type StorageTarget int
 
@@ -128,7 +130,7 @@ func (d *JumpstarterDevice) detectStorageDevice() (string, error) {
 	if err := d.connectStorageTo(OFF); err != nil {
 		return "", fmt.Errorf("detectStorageDevice: %w", err)
 	}
-	time.Sleep(WAIT_TIME_USB_STORAGE)
+	time.Sleep(WAIT_TIME_USB_STORAGE_OFF)
 
 	diskSetOff, err := scanForStorageDevices("usb-")
 	if err != nil {
@@ -138,20 +140,31 @@ func (d *JumpstarterDevice) detectStorageDevice() (string, error) {
 	if err := d.connectStorageTo(HOST); err != nil {
 		return "", fmt.Errorf("detectStorageDevice: %w", err)
 	}
-	time.Sleep(WAIT_TIME_USB_STORAGE)
 
-	diskSetOn, err := scanForStorageDevices("usb-")
-	if err != nil {
-		return "", fmt.Errorf("detectStorageDevice: %w", err)
+	// get current timestamp so we can measure how long it takes to detect the new disk
+	start := time.Now()
+
+	var diskSetOn *mapset.Set[string]
+
+	for {
+		time.Sleep(500 * time.Millisecond)
+		diskSetOn, err = scanForStorageDevices("usb-")
+		if err != nil {
+			return "", fmt.Errorf("detectStorageDevice: %w", err)
+		}
+		newDiskSet := (*diskSetOn).Difference(*diskSetOff)
+		if newDiskSet.Cardinality() == 1 {
+			diskPath, _ := newDiskSet.Pop()
+			return diskPath, nil
+		}
+		if time.Since(start) > WAIT_TIME_USB_STORAGE {
+			if newDiskSet.Cardinality() > 1 {
+				return "", fmt.Errorf("detectStorageDevice: more than one new disk detected")
+			}
+			return "", fmt.Errorf("detectStorageDevice: no new disk detected after 30 seconds")
+		}
 	}
 
-	newDiskSet := (*diskSetOn).Difference(*diskSetOff)
-	if newDiskSet.Cardinality() != 1 {
-		return "", fmt.Errorf("detectStorageDevice: expected one new disk, got %d, %v", newDiskSet.Cardinality(), newDiskSet)
-	}
-
-	diskPath, _ := newDiskSet.Pop()
-	return diskPath, nil
 }
 
 func writeImageToDisk(imagePath string, diskPath string) error {
@@ -161,7 +174,7 @@ func writeImageToDisk(imagePath string, diskPath string) error {
 	}
 	defer inputFile.Close()
 
-	outputFile, err := os.OpenFile(diskPath, os.O_WRONLY, 0666)
+	outputFile, err := os.OpenFile(diskPath, os.O_WRONLY|os.O_SYNC, 0666)
 	if err != nil {
 		return fmt.Errorf("writeImageToDisk: %w", err)
 	}
@@ -191,10 +204,17 @@ func writeImageToDisk(imagePath string, diskPath string) error {
 	}
 	outputFile.Close()
 	fmt.Println()
-	time.Sleep(WAIT_TIME_USB_STORAGE)
-	err = exec.Command("udisksctl", "power-off", "-b", diskPath).Run()
-	if err != nil {
-		return fmt.Errorf("writeImageToDisk: %w", err)
+
+	if err := exec.Command("sync").Run(); err != nil {
+		return fmt.Errorf("writeImageToDisk: sync %w", err)
+	}
+
+	time.Sleep(WAIT_TIME_USB_STORAGE * 2)
+	cmd := exec.Command("udisksctl", "power-off", "-b", diskPath)
+	var errb bytes.Buffer
+	cmd.Stderr = &errb
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("writeImageToDisk: %w %s", err, errb.String())
 	}
 	time.Sleep(WAIT_TIME_USB_STORAGE)
 	return nil
