@@ -25,6 +25,7 @@ var powerOnCmd = &cobra.Command{
 		driver := cmd.Flag("driver").Value.String()
 		console, _ := cmd.Flags().GetBool("console")
 		pwcycle, _ := cmd.Flags().GetBool("cycle")
+		reset, _ := cmd.Flags().GetBool("reset")
 		attach_storage, _ := cmd.Flags().GetBool("attach-storage")
 
 		device, err := harness.FindDevice(driver, args[0])
@@ -59,6 +60,10 @@ var powerOnCmd = &cobra.Command{
 			color.Unset()
 		}
 
+		if reset {
+			resetDevice(device, args[0])
+		}
+
 		if console {
 			serialConsole(device)
 		}
@@ -68,7 +73,8 @@ var powerOnCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(powerOnCmd)
 	powerOnCmd.Flags().StringP("driver", "d", "", "Only list devices for the specified driver")
-	powerOnCmd.Flags().BoolP("console", "c", false, "Open console after powering on")
-	powerOnCmd.Flags().BoolP("cycle", "r", false, "Power cycle the device")
+	powerOnCmd.Flags().BoolP("console", "t", false, "Open console terminal after powering on")
+	powerOnCmd.Flags().BoolP("cycle", "c", false, "Power cycle the device")
+	powerOnCmd.Flags().BoolP("reset", "r", false, "Reset device after power up")
 	powerOnCmd.Flags().BoolP("attach-storage", "a", false, "Attach storage before powering on")
 }

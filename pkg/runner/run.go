@@ -67,12 +67,9 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 		*/
 	case p.Power != nil:
 		return p.Power.run(device)
-		/*
-			case p.LoginAndGetInventory != nil:
-				return p.LoginAndGetInventory.run(device)
-			case p.AnsiblePlaybook != nil:
-				return p.AnsiblePlaybook.run(device)
-		*/
+
+	case p.Reset != nil:
+		return p.Reset.run(device)
 	}
 	return TaskResult{
 		status: Fatal,

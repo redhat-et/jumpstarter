@@ -19,16 +19,15 @@ type JumpstarterPlaybook struct {
 
 type JumpstarterTask struct {
 	// name of the task
-	Name                 string                    `yaml:"name"`
-	SetDiskImage         *SetDiskImageTask         `yaml:"set-disk-image,omitempty"`
-	Expect               *ExpectTask               `yaml:"expect,omitempty"`
-	Send                 *SendTask                 `yaml:"send,omitempty"`
-	Storage              *StorageTask              `yaml:"storage,omitempty"`
-	UefiGoTo             *UefiGoToTask             `yaml:"uefi-go-to,omitempty"`
-	Power                *PowerTask                `yaml:"power,omitempty"`
-	LoginAndGetInventory *LoginAndGetInventoryTask `yaml:"login-and-get-inventory,omitempty"`
-	AnsiblePlaybook      *AnsiblePlaybookTask      `yaml:"ansible-playbook,omitempty"`
-	parent               *JumpstarterPlaybook
+	Name         string            `yaml:"name"`
+	SetDiskImage *SetDiskImageTask `yaml:"set-disk-image,omitempty"`
+	Expect       *ExpectTask       `yaml:"expect,omitempty"`
+	Send         *SendTask         `yaml:"send,omitempty"`
+	Storage      *StorageTask      `yaml:"storage,omitempty"`
+	UefiGoTo     *UefiGoToTask     `yaml:"uefi-go-to,omitempty"`
+	Power        *PowerTask        `yaml:"power,omitempty"`
+	Reset        *ResetTask        `yaml:"reset,omitempty"`
+	parent       *JumpstarterPlaybook
 }
 
 type SetDiskImageTask struct {
@@ -42,6 +41,10 @@ type ExpectTask struct {
 	Echo         bool   `default:"true" yaml:"echo"`
 	DebugEscapes bool   `default:"true" yaml:"debug_escapes"`
 	Timeout      uint   `yaml:"timeout"`
+}
+
+type ResetTask struct {
+	TimeMs uint `yaml:"time_ms"`
 }
 
 func (e *ExpectTask) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -83,18 +86,6 @@ type PowerTask struct {
 	Action string `yaml:"action"`
 }
 
-type LoginAndGetInventoryTask struct {
-	Username  string `yaml:"username"`
-	Password  string `yaml:"password"`
-	Inventory string `yaml:"inventory"`
-}
-
-type AnsiblePlaybookTask struct {
-	Playbook  string `yaml:"playbook"`
-	Inventory string `yaml:"inventory"`
-	ExtraArgs string `yaml:"extra-args"`
-}
-
 // a type enum with changed, ok, error
 type TaskStatus int
 
@@ -127,10 +118,8 @@ func (p *JumpstarterTask) getName() string {
 		return "uefi-go-to"
 	case p.Power != nil:
 		return "power"
-	case p.LoginAndGetInventory != nil:
-		return "login-and-get-inventory"
-	case p.AnsiblePlaybook != nil:
-		return "ansible-playbook"
+	case p.Reset != nil:
+		return "reset"
 	default:
 		return "unknown"
 	}
