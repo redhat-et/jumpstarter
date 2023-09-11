@@ -33,7 +33,7 @@
     - send:
         this:
           - "<UP>" # select the main grub entry, no disk test
-          - "e"    # edit it
+          - "e"    # edit it:q
           - "<DOWN><DOWN><CTRL-E>" # go down to the kernel line, and end of line
           - " inst.vnc console=ttyTCU0,115200" # our addition
           - "<CTRL-X>" #boot

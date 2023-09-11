@@ -20,8 +20,9 @@ var runPlaybookCmd = &cobra.Command{
 
 		playbook := args[0]
 		driver := cmd.Flag("driver").Value.String()
+		disableCleanup, _ := cmd.Flags().GetBool("disable-cleanup")
 
-		err := runner.RunPlaybook("", driver, playbook)
+		err := runner.RunPlaybook("", driver, playbook, disableCleanup)
 		handleErrorAsFatal(err)
 	},
 }
@@ -29,4 +30,5 @@ var runPlaybookCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(runPlaybookCmd)
 	runPlaybookCmd.Flags().StringP("driver", "d", "", "Only run on devices for the specified driver")
+	runPlaybookCmd.Flags().BoolP("disable-cleanup", "c", false, "Disable the cleanup phase if something goes wrong")
 }

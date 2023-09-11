@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func RunPlaybook(device_id, driver, yaml_file string) error {
+func RunPlaybook(device_id, driver, yaml_file string, disableCleanup bool) error {
 
 	// parse yaml file into a JumpstarterPlaybook struct
 	playbooks := []JumpstarterPlaybook{}
@@ -41,7 +41,7 @@ func RunPlaybook(device_id, driver, yaml_file string) error {
 	fmt.Printf("⚙ Using device %q with tags %v\n", device.Name(), device.Tags())
 	color.Unset()
 
-	return playbook.run(device)
+	return playbook.run(device, disableCleanup)
 }
 
 func (p *JumpstarterTask) run(device harness.Device) TaskResult {
@@ -123,12 +123,18 @@ func (p *JumpstarterPlaybook) runPlaybookCleanup(device harness.Device) error {
 	return p.runTasks(&(p.Cleanup), device)
 }
 
-func (p *JumpstarterPlaybook) run(device harness.Device) error {
+func (p *JumpstarterPlaybook) run(device harness.Device, disableCleanup bool) error {
 	printHeader("JUMPSTARTER-PLAY", p.Name)
-
+	var errCleanup error
 	errTasks := p.runPlaybookTasks(device)
-	errCleanup := p.runPlaybookCleanup(device)
 
+	if disableCleanup {
+		color.Set(color.FgHiYellow)
+		fmt.Printf("⚠ Cleaning phase has been skipped based on the request")
+		color.Unset()
+	} else {
+		errCleanup = p.runPlaybookCleanup(device)
+	}
 	if errCleanup != nil {
 		if errTasks != nil {
 			return fmt.Errorf("errors during playbook run %w and cleanup: %w", errTasks, errCleanup)

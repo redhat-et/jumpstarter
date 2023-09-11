@@ -13,7 +13,6 @@ import (
 
 func (t *SendTask) run(device harness.Device) TaskResult {
 
-	fmt.Println("SendTask", t)
 	console, err := device.Console()
 	if err != nil {
 		return TaskResult{
