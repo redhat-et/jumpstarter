@@ -6,9 +6,9 @@
     - name: "Power off"
       power:
         action: off
-    #- name: "Load image"
-    #  set-disk-image:
-    #    image: "isos/RHEL-9.3.0-20230907.0-aarch64-boot.iso"
+    - name: "Load image"
+      set-disk-image:
+        image: "isos/RHEL-9.3.0-20230907.0-aarch64-boot.iso"
 
     - name: "Attach storage"
       storage:
@@ -17,15 +17,12 @@
     - name: "Power on"
       power:
         action: on
+
+    - expect:
+        this: "Enter to continue boot"
     - send:
         this:
-          - "<UP>" # select the main grub entry, no disk test
-
-    - pause:
-        seconds: 1
-
-    - reset:
-        time_ms: 500
+          - "<ENTER>"
 
     - expect:
         this: "Press enter to boot the selected OS"
