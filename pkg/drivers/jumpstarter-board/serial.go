@@ -193,7 +193,20 @@ func (d *JumpstarterDevice) outOfBandConsole() (harness.ConsoleInterface, error)
 			if d.oobSerialPort != nil {
 				d.oobSerialPort.Close()
 			}
-			port, err := serial.Open(dev, mode)
+			var port serial.Port
+			var err error
+
+			// sometimes the device shows up and it is not ready yet, so we need to retry
+			retries := 5
+			for retries > 0 {
+				port, err = serial.Open(dev, mode)
+				if err == nil {
+					break
+				}
+				retries -= 1
+				time.Sleep(1 * time.Second)
+			}
+
 			if err != nil {
 				return nil, fmt.Errorf("outOfBandConsole: openSerial: %w", err)
 			}
