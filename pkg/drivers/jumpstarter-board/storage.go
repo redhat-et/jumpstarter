@@ -214,13 +214,13 @@ func writeImageToDisk(imagePath string, diskPath string, offset uint64) error {
 		return fmt.Errorf("writeImageToDisk: sync %w", err)
 	}
 
-	time.Sleep(WAIT_TIME_USB_STORAGE * 2)
+	time.Sleep(WAIT_TIME_USB_STORAGE)
 	cmd := exec.Command("udisksctl", "power-off", "-b", diskPath)
 	var errb bytes.Buffer
 	cmd.Stderr = &errb
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("writeImageToDisk: %w %s", err, errb.String())
 	}
-	time.Sleep(WAIT_TIME_USB_STORAGE)
+	time.Sleep(WAIT_TIME_USB_STORAGE_OFF)
 	return nil
 }
