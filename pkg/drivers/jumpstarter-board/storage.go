@@ -29,7 +29,7 @@ const (
 	OFF
 )
 
-func (d *JumpstarterDevice) SetDiskImage(path string) error {
+func (d *JumpstarterDevice) SetDiskImage(path string, offset uint64) error {
 
 	fmt.Print("🔍 Detecting USB storage device and connecting to host: ")
 	diskPath, err := d.detectStorageDevice()
@@ -38,9 +38,9 @@ func (d *JumpstarterDevice) SetDiskImage(path string) error {
 	}
 	fmt.Println("done")
 
-	fmt.Printf("📋 %s -> %s: \n", path, diskPath)
+	fmt.Printf("📋 %s -> %s offset 0x%x: \n", path, diskPath, offset)
 
-	if err := writeImageToDisk(path, diskPath); err != nil {
+	if err := writeImageToDisk(path, diskPath, offset); err != nil {
 		return fmt.Errorf("SetDiskImage: %w", err)
 	}
 
@@ -167,7 +167,7 @@ func (d *JumpstarterDevice) detectStorageDevice() (string, error) {
 
 }
 
-func writeImageToDisk(imagePath string, diskPath string) error {
+func writeImageToDisk(imagePath string, diskPath string, offset uint64) error {
 	inputFile, err := os.OpenFile(imagePath, os.O_RDONLY, 0666)
 	if err != nil {
 		return fmt.Errorf("writeImageToDisk: %w", err)
@@ -177,6 +177,11 @@ func writeImageToDisk(imagePath string, diskPath string) error {
 	outputFile, err := os.OpenFile(diskPath, os.O_WRONLY|os.O_SYNC, 0666)
 	if err != nil {
 		return fmt.Errorf("writeImageToDisk: %w", err)
+	}
+
+	if _, err := outputFile.Seek(int64(offset), 0); err != nil {
+		outputFile.Close()
+		return fmt.Errorf("writeImageToDisk:Seek to 0x%x %w", offset, err)
 	}
 
 	buffer := make([]byte, BLOCK_SIZE)

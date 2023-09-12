@@ -19,6 +19,8 @@ func TestPlaybookParsing(t *testing.T) {
       set-disk-image:
         image: "my-rhel9.3-aarch64-with-kmods.iso"
         attach_storage: true
+        offset-gb: 0
+
 
     - name: "Power on"
       power:

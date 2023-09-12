@@ -34,6 +34,7 @@ type JumpstarterTask struct {
 type SetDiskImageTask struct {
 	Image         string `yaml:"image"`
 	AttachStorage bool   `yaml:"attach_storage"`
+	OffsetGB      uint   `yaml:"offset-gb"`
 }
 
 type ExpectTask struct {

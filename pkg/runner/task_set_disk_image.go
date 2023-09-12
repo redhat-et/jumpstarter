@@ -6,7 +6,7 @@ import (
 
 func (t *SetDiskImageTask) run(device harness.Device) TaskResult {
 
-	err := device.SetDiskImage(t.Image)
+	err := device.SetDiskImage(t.Image, uint64(t.OffsetGB)*1024*1024*1024)
 	if err != nil {
 		return TaskResult{
 			status: Fatal,

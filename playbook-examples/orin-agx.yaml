@@ -10,6 +10,11 @@
       set-disk-image:
         image: "isos/RHEL-9.3.0-20230907.0-aarch64-boot.iso"
 
+    - name: "Load rpms image at offset 16GB"
+      set-disk-image:
+        image: "rpms.ext2"
+        offset-gb: 16
+
     - name: "Attach storage"
       storage:
         attached: true
