@@ -63,15 +63,6 @@ func TestPlaybookParsing(t *testing.T) {
     - power:
         action: cycle
 
-    - login-and-get-inventory:    # This will wait for the login sequency,
-        user: "root"              # then gather the inventory for network connection
-        password: "{{ env.IMAGE_PASSWORD }}"
-        inventory: "inventory.json"
-
-    - ansible_playbook:
-        playbook: test-kmods.yaml
-        inventory: "inventory.json"
-        extra_args:
   cleanup:
     - name: "Power off"
       power:
