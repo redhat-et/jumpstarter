@@ -2,7 +2,6 @@ package runner
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -55,8 +54,7 @@ func monitorOutput(console harness.ConsoleInterface, debugEscapes bool) {
 		if debugEscapes {
 			bufStr = strings.ReplaceAll(bufStr, "\x1b", "\n<ESC>")
 		}
-		os.Stdout.Write([]byte(bufStr))
-		os.Stdout.Sync()
+		fmt.Print(bufStr)
 	}
 }
 

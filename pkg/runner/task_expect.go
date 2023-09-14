@@ -2,7 +2,6 @@ package runner
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/fatih/color"
@@ -52,13 +51,11 @@ func (t *ExpectTask) run(device harness.Device) TaskResult {
 		c := buf[0]
 		if t.Echo {
 			if c != '\x1b' || !t.DebugEscapes {
-				os.Stdout.Write(buf)
-				// flush stdout
-				os.Stdout.Sync()
+				fmt.Print(string(c))
 			} else {
-				os.Stdout.Write([]byte("\n<ESC>"))
+				fmt.Print("\n<ESC>")
 			}
-			os.Stdout.Sync()
+
 		}
 		received += string(c)
 		if c == expected[p] {
