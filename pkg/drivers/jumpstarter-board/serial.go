@@ -175,7 +175,7 @@ func (d *JumpstarterDevice) outOfBandConsole() (harness.ConsoleInterface, error)
 	start := time.Now()
 	max_wait_time := 15 * time.Second
 
-	fmt.Println("Looking up for out-of-band console: ", d.usb_console)
+	fmt.Fprintln(os.Stderr, "Looking up for out-of-band console: ", d.usb_console)
 
 	for {
 		devices, err := scanForSerialDevices(d.usb_console)

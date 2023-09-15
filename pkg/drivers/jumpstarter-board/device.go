@@ -55,7 +55,6 @@ func (d *JumpstarterDevice) Power(on bool) error {
 }
 
 func (d *JumpstarterDevice) Console() (harness.ConsoleInterface, error) {
-	fmt.Println("Console ", d.usb_console)
 	if d.usb_console == "" {
 		return d.inBandConsole()
 	}
