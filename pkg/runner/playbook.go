@@ -19,16 +19,17 @@ type JumpstarterPlaybook struct {
 
 type JumpstarterTask struct {
 	// name of the task
-	Name         string            `yaml:"name"`
-	SetDiskImage *SetDiskImageTask `yaml:"set-disk-image,omitempty"`
-	Expect       *ExpectTask       `yaml:"expect,omitempty"`
-	Send         *SendTask         `yaml:"send,omitempty"`
-	Storage      *StorageTask      `yaml:"storage,omitempty"`
-	UefiGoTo     *UefiGoToTask     `yaml:"uefi-go-to,omitempty"`
-	Power        *PowerTask        `yaml:"power,omitempty"`
-	Reset        *ResetTask        `yaml:"reset,omitempty"`
-	Pause        *PauseTask        `yaml:"pause,omitempty"`
-	parent       *JumpstarterPlaybook
+	Name                  string                     `yaml:"name"`
+	SetDiskImage          *SetDiskImageTask          `yaml:"set-disk-image,omitempty"`
+	Expect                *ExpectTask                `yaml:"expect,omitempty"`
+	Send                  *SendTask                  `yaml:"send,omitempty"`
+	Storage               *StorageTask               `yaml:"storage,omitempty"`
+	Power                 *PowerTask                 `yaml:"power,omitempty"`
+	Reset                 *ResetTask                 `yaml:"reset,omitempty"`
+	Pause                 *PauseTask                 `yaml:"pause,omitempty"`
+	WriteAnsibleInventory *WriteAnsibleInventoryTask `yaml:"write-ansible-inventory,omitempty"`
+	LocalShell            *LocalShell                `yaml:"local-shell,omitempty"`
+	parent                *JumpstarterPlaybook
 }
 
 type SetDiskImageTask struct {
@@ -51,6 +52,16 @@ type ResetTask struct {
 
 type PauseTask struct {
 	Seconds uint `yaml:"seconds"`
+}
+
+type WriteAnsibleInventoryTask struct {
+	Filename string `default:"inventory" yaml:"filename"`
+	User     string `default:"root" yaml:"user"`
+	SshKey   string `yaml:"ssh_key"`
+}
+
+type LocalShell struct {
+	Script string `yaml:"script"`
 }
 
 func (e *ExpectTask) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -82,10 +93,6 @@ func (s *SendTask) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 type StorageTask struct {
 	Attached bool `yaml:"attached"`
-}
-
-type UefiGoToTask struct {
-	Option string `yaml:"option"`
 }
 
 type PowerTask struct {
@@ -120,14 +127,16 @@ func (p *JumpstarterTask) getName() string {
 		return "send"
 	case p.Storage != nil:
 		return "storage"
-	case p.UefiGoTo != nil:
-		return "uefi-go-to"
 	case p.Power != nil:
 		return "power"
 	case p.Reset != nil:
 		return "reset"
 	case p.Pause != nil:
 		return "pause"
+	case p.WriteAnsibleInventory != nil:
+		return "write-ansible-inventory"
+	case p.LocalShell != nil:
+		return "local-shell"
 	default:
 		return "unknown"
 	}

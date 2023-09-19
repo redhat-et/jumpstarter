@@ -1,6 +1,6 @@
 - name: "Test Jetson kmods"
   tags:
-    - orin-agx
+    - orin
   expect-timeout: 60
   tasks:
     - name: "Power off"
@@ -8,12 +8,7 @@
         action: off
     - name: "Load image"
       set-disk-image:
-        image: "isos/RHEL-9.3.0-20230907.0-aarch64-boot.iso"
-
-    - name: "Load rpms image at offset 16GB"
-      set-disk-image:
-        image: "rpms.ext2"
-        offset-gb: 16
+        image: "rhel-guest-image.raw"
 
     - name: "Attach storage"
       storage:
@@ -24,53 +19,94 @@
         action: on
 
     - expect:
-        this: "Enter to continue boot"
-    - send:
-        this:
-          - "<ENTER>"
-
-    - expect:
-        this: "Press enter to boot the selected OS"
-
-    - send:
-        this:
-          - "<UP>" # select the main grub entry, no disk test
-          - "e"    # edit it:q
-          - "<DOWN><DOWN><CTRL-E>" # go down to the kernel line, and end of line
-          - " inst.vnc console=ttyTCU0,115200" # our addition
-          - "<CTRL-X>" #boot
-
-    - expect:
-        this: "forever"
+        this: "login: "
         debug_escapes: false
+        timeout: 300
+    - send:
+        this:
+          - "root\n"
+          - "redhat\n"
+    - pause:
+        seconds: 3
+    - expect:
+        debug_escapes: false
+        this: "[root@localhost ~]#"
+    - send:
+        echo: true
+        this:
+          - "sudo dnf update -y\n"
+    - expect:
+        timeout: 120
+        echo: true
+        debug_escapes: false
+        this: "Complete"
+    - expect:
+        debug_escapes: false
+        this: "[root@localhost ~]#"
 
-    - uefi-go-to:
-        option: "Boot Manager"
-    - uefi-go-to:
-        option: "UEFI {{ StorageName }}" # find ansible variable insertion
+    - send:
+        echo: true
+        this:
+          - "sudo dnf install -y nvidia-jetpack-kmod\n"
+    - expect:
+        timeout: 120
+        echo: true
+        debug_escapes: false
+        this: "Complete"
+
+    - send:
+        debug_escapes: false
+        this:
+          - "reboot\n"
+
+    - expect:
+        this: "login: "
+        debug_escapes: false
+        timeout: 500 # the kmod boot takes very long because of some issues with the crypto modules from nvidia
+    - send:
+        this:
+          - "root\n"
+          - "redhat\n"
+
+    - send:
+        echo: false # we dont want to capture any of the output so expect will catch it
+        this:
+          - "\n"
+          - "\n"
+    - expect:
+        debug_escapes: false
+        echo: true
+        this: "[root@localhost ~]#"
+
+    - send:
+        echo: false # we dont want to capture any of the output so expect will catch it
+        this:
+          - "lsmod | grep --color=never nv\n"
 
 
     - expect:
-        this: "Install finished"
+        echo: true
+        this: "nvgpu"
 
-    - name: "Detach storage"
-      storage:
-        connected: false
+    - write-ansible-inventory:
+        filename: "inventory.yaml"
+        ssh_key: ~/.ssh/id_rsa
+    - local-shell:
+        script: |
+          ansible -m ping -i inventory.yaml all
 
-    - login-and-get-inventory:
-        user: "root"
-        password: "{{ env.password }}"
-        inventory: "inventory.json"
+ cleanup:
+   - send:
+       debug_escapes: false
+       this:
+         - "poweroff\n"
+   - pause:
+       seconds: 5
 
-    - ansible_playbook:
-        playbook: test-kmods.yaml
-        inventory: "inventory.json"
-        extra_args:
-  cleanup:
-    - name: "Power off"
-      power:
-        action: off
-    - name: "Detach storage"
-      storage:
-        connected: false
+   - name: "Power off"
+     power:
+       action: off
+   - name: "Detach storage"
+     storage:
+       connected: false
 

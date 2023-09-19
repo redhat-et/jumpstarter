@@ -61,10 +61,7 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 
 	case p.Storage != nil:
 		return p.Storage.run(device)
-		/*
-			case p.UefiGoTo != nil:
-				return p.UefiGoTo.run(device)
-		*/
+
 	case p.Power != nil:
 		return p.Power.run(device)
 
@@ -73,7 +70,14 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 
 	case p.Pause != nil:
 		return p.Pause.run(device)
+
+	case p.WriteAnsibleInventory != nil:
+		return p.WriteAnsibleInventory.run(device)
+
+	case p.LocalShell != nil:
+		return p.LocalShell.run(device)
 	}
+
 	return TaskResult{
 		status: Fatal,
 		err:    fmt.Errorf("invalid task: %s", p.getName()),
