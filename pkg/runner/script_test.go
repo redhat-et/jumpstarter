@@ -8,7 +8,7 @@ import (
 )
 
 func TestScriptParsing(t *testing.T) {
-	var playbook = `
+	var script_data = `
   name: "Test Jetson kmods"
   selector:
     - orin
@@ -123,10 +123,10 @@ func TestScriptParsing(t *testing.T) {
   
   
 `
-	// parse yaml file into a JumpstarterPlaybook struct
+	// parse yaml file into a JumpstarterScript struct
 	script := JumpstarterScript{}
 
-	err := yaml.Unmarshal([]byte(playbook), &script)
+	err := yaml.Unmarshal([]byte(script_data), &script)
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
