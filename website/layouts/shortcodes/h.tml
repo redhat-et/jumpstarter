@@ -1,0 +1,2 @@
+{{ $opts := dict "hl_inline" true "style" "github" }}
+{{ highlight .Inner ("") $opts }}
