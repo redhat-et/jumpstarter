@@ -9,24 +9,21 @@ import (
 	"github.com/redhat-et/jumpstarter/pkg/tools"
 )
 
-func (t *WriteAnsibleInventoryTask) run(device harness.Device) TaskResult {
+func (t *WriteAnsibleInventoryStep) run(device harness.Device) StepResult {
 
 	// Open the inventory file t.Filename for writing
 	// If the file doesn't exist, create it or append to the file
-	inventoryFile, err := os.OpenFile(t.Filename, os.O_CREATE|os.O_WRONLY, 0644)
+	inventoryFile, err := os.OpenFile(t.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return TaskResult{
+		return StepResult{
 			status: Fatal,
 			err:    fmt.Errorf("WriteAnsibleInventory:run(%q) opening file for write: %w", t.Filename, err),
 		}
 	}
 	defer inventoryFile.Close()
-	if t.User == "" {
-		t.User = "root"
-	}
 
 	if err := tools.CreateAnsibleInventory(device, inventoryFile, t.User, t.SshKey); err != nil {
-		return TaskResult{
+		return StepResult{
 			status: Fatal,
 			err:    fmt.Errorf("WriteAnsibleInventory:run(%q) writing inventory file: %w", t.Filename, err),
 		}
@@ -38,8 +35,8 @@ func (t *WriteAnsibleInventoryTask) run(device harness.Device) TaskResult {
 
 	fmt.Println("")
 
-	return TaskResult{
-		status: Ok,
+	return StepResult{
+		status: SilentOk,
 		err:    nil,
 	}
 }

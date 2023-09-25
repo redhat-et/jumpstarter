@@ -8,11 +8,11 @@ import (
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 )
 
-func (t *ExpectTask) run(device harness.Device) TaskResult {
+func (t *ExpectStep) run(device harness.Device) StepResult {
 
 	console, err := device.Console()
 	if err != nil {
-		return TaskResult{
+		return StepResult{
 			status: Fatal,
 			err:    fmt.Errorf("Expect:run(%q) opening console: %w", t.This, err),
 		}
@@ -30,7 +30,7 @@ func (t *ExpectTask) run(device harness.Device) TaskResult {
 	for p < len(expected) {
 		n, err := console.Read(buf)
 		if err != nil {
-			return TaskResult{
+			return StepResult{
 				status: Fatal,
 				err:    fmt.Errorf("Expect:run(%q) reading %w", expected, err),
 			}
@@ -41,7 +41,7 @@ func (t *ExpectTask) run(device harness.Device) TaskResult {
 				fmt.Printf("\n\nexpecting %q and timed out after %d seconds.\n", expected, t.Timeout)
 				color.Unset()
 
-				return TaskResult{
+				return StepResult{
 					status: Fatal,
 					err:    fmt.Errorf("Expect:run(%q) timeout", expected),
 				}
@@ -71,8 +71,8 @@ func (t *ExpectTask) run(device harness.Device) TaskResult {
 
 	fmt.Println("")
 
-	return TaskResult{
-		status: Ok,
+	return StepResult{
+		status: SilentOk,
 		err:    nil,
 	}
 }

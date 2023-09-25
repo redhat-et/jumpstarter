@@ -1,18 +1,19 @@
 package runner
 
 import (
+	"strings"
 	"time"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 )
 
-func (t *PowerTask) run(device harness.Device) TaskResult {
+func (t *PowerStep) run(device harness.Device) StepResult {
 
-	switch t.Action {
+	switch strings.ToLower(string(*t)) {
 	case "on":
 		err := device.Power(true)
 		if err != nil {
-			return TaskResult{
+			return StepResult{
 				status: Fatal,
 				err:    err,
 			}
@@ -20,7 +21,7 @@ func (t *PowerTask) run(device harness.Device) TaskResult {
 	case "off":
 		err := device.Power(false)
 		if err != nil {
-			return TaskResult{
+			return StepResult{
 				status: Fatal,
 				err:    err,
 			}
@@ -29,7 +30,7 @@ func (t *PowerTask) run(device harness.Device) TaskResult {
 	case "cycle":
 		err := device.Power(false)
 		if err != nil {
-			return TaskResult{
+			return StepResult{
 				status: Fatal,
 				err:    err,
 			}
@@ -37,7 +38,7 @@ func (t *PowerTask) run(device harness.Device) TaskResult {
 		time.Sleep(2 * time.Second)
 		err = device.Power(true)
 		if err != nil {
-			return TaskResult{
+			return StepResult{
 				status: Fatal,
 				err:    err,
 			}
@@ -45,8 +46,8 @@ func (t *PowerTask) run(device harness.Device) TaskResult {
 
 	}
 
-	return TaskResult{
-		status: Changed,
+	return StepResult{
+		status: Done,
 		err:    nil,
 	}
 }

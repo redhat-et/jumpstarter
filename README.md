@@ -1,27 +1,16 @@
-# jumpstarter
-Jumpstarter agent and cmdline tools
+# Jumpstarter project
 
-## Usage
+For more information about this project please visit [jumpstarter.dev](https://jumpstarter.dev).
 
-### command line tool
+The documentation is available here [jumpstarter.dev/docs/](https://jumpstarter.dev/docs/).
 
-```
-$ jumpstarter help
-$ jumpstarter set-disk-image <id> <image file>
-$ jumpstarter attach-storage <id>
-$ jumpstarter detach-storage <id>
+And you can find details about the command line in [reference section](https://jumpstarter.dev/docs/reference/).
 
-$ jumpstarter list-drivers
-$ jumpstarter list-devices [-d driver]
 
-$ jumpstarter console <id> [-d driver]
-$ jumpstarter power-on <id> [-c] [--console] [--cycle] [--attach-storage]
-$ jumpstarter power-off <id>
+## The jumpstarter board
 
-$ jumpstarter set-control <id> <signal> <status>
+Jumpstarter has a driver for the jumpstarter-board which is a test harness used to control
+edge/embedded devices, more details can be found here:
+[jumpstarter-board](https://jumpstarter.dev/docs/testharness/jumpstarterboard/)
 
-$ jumpstarter set-name <id> <name>
-$ jumpstarter set-tags <id> tag1 [tag2] [tag3] ...
 
-$ jumpstarter run <id> <jumpstarter-playbook.yaml>
-```

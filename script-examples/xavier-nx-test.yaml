@@ -1,0 +1,69 @@
+name: "Test Jetson kmods"
+selector:
+    - xavier-nx
+    - 8gb
+expect-timeout: 60
+steps:
+  - power: off
+  - set-disk-image:
+      image: "isos/RHEL-9.3.0-20230809.27-aarch64-boot.iso"
+
+  - name: "Attach storage"
+    storage:
+      attached: true
+
+  - name: "Power on"
+    power:
+      action: on
+
+  - expect:
+      this: "Press ESCAPE for boot options"
+
+  - send:
+      this:
+        - "<ENTER>"
+
+  - expect:
+      this: "GRUB version"
+
+  - send:
+      this:
+        - "<UP>" # select the main grub entry, no disk test
+        - "e"    # edit it
+        - "<DOWN><DOWN><CTRL-E>" # go down to the kernel line, and end of line
+        - " inst.vnc console=ttyS0,115200" # our addition
+        - "<CTRL-X>" #boot
+
+  - expect:
+      this: "forever"
+      debug_escapes: false
+
+  - expect:
+      this: "Install finished"
+
+  - storage: detach
+
+  - expect:
+      this: "login: "
+      debug_escapes: false
+      timeout: 500 # the kmod boot takes very long because of some issues with the crypto modules from nvidia
+
+  - send:
+      this:
+        - "root\n"
+        - "redhat\n"
+
+  - comment: "Creating an inventory for this device and continuing with ansible"
+  - write-ansible-inventory:
+      filename: "inventory.yaml"
+      ssh_key: ~/.ssh/id_rsa
+
+  - local-shell:
+      script: |
+        ansible -m ping -i inventory.yaml all
+
+
+  cleanup:
+    - comment: "Cleanup and power off"
+    - power: off
+    - storage: detach

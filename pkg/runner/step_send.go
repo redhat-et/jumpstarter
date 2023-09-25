@@ -10,11 +10,11 @@ import (
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 )
 
-func (t *SendTask) run(device harness.Device) TaskResult {
+func (t *SendStep) run(device harness.Device) StepResult {
 
 	console, err := device.Console()
 	if err != nil {
-		return TaskResult{
+		return StepResult{
 			status: Fatal,
 			err:    fmt.Errorf("Expect:run(%q) opening console: %w", t.This, err),
 		}
@@ -35,8 +35,8 @@ func (t *SendTask) run(device harness.Device) TaskResult {
 
 	fmt.Println("")
 
-	return TaskResult{
-		status: Ok,
+	return StepResult{
+		status: SilentOk,
 		err:    nil,
 	}
 }
