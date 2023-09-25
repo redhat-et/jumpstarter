@@ -8,7 +8,7 @@ import (
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 )
 
-func (t *LocalShell) run(device harness.Device) TaskResult {
+func (t *LocalShellStep) run(device harness.Device) StepResult {
 	/*
 		// create a temporary file in /tmp
 		file, err := os.CreateTemp("/tmp", "jumpstarter-*-localshell.sh")
@@ -35,14 +35,14 @@ func (t *LocalShell) run(device harness.Device) TaskResult {
 	cmd.Stderr = os.Stdout
 	err := cmd.Run()
 	if err != nil {
-		return TaskResult{
+		return StepResult{
 			status: Fatal,
 			err:    err,
 		}
 	}
 
-	return TaskResult{
-		status: Ok,
+	return StepResult{
+		status: SilentOk,
 		err:    nil,
 	}
 

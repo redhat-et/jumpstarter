@@ -7,12 +7,12 @@ import (
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 )
 
-func (t *ResetTask) run(device harness.Device) TaskResult {
+func (t *ResetStep) run(device harness.Device) StepResult {
 
 	fmt.Println("Resetting device...")
 	err := device.SetControl("r", "l")
 	if err != nil {
-		return TaskResult{
+		return StepResult{
 			status: Fatal,
 			err:    err,
 		}
@@ -27,14 +27,14 @@ func (t *ResetTask) run(device harness.Device) TaskResult {
 
 	err = device.SetControl("r", "z")
 	if err != nil {
-		return TaskResult{
+		return StepResult{
 			status: Fatal,
 			err:    err,
 		}
 	}
 
-	return TaskResult{
-		status: Changed,
+	return StepResult{
+		status: Done,
 		err:    nil,
 	}
 }

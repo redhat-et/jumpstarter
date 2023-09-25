@@ -4,49 +4,47 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strings"
 
 	"github.com/fatih/color"
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"gopkg.in/yaml.v3"
 )
 
-func RunPlaybook(device_id, driver, yaml_file string, disableCleanup bool) error {
+func RunScript(device_id, driver, yaml_file string, disableCleanup bool) error {
 
-	// parse yaml file into a JumpstarterPlaybook struct
-	playbooks := []JumpstarterPlaybook{}
+	// parse yaml file into a JumpstarterScript struct
+	script := JumpstarterScript{}
 
 	// read yaml file
-	if err := readPlaybook(yaml_file, &playbooks); err != nil {
-		return fmt.Errorf("RunPlaybook: %w", err)
+	if err := readScript(yaml_file, &script); err != nil {
+		return fmt.Errorf("RunScript: %w", err)
 	}
 	// TODO: check if the yaml contents are consistent
-
-	if len(playbooks) != 1 {
-		return fmt.Errorf("RunPlaybook: %q should only have one entry", yaml_file)
-	}
-
-	// iterate over each playbook entry
-	playbook := playbooks[0]
 
 	var device harness.Device
 
 	// TODO implement retry/wait
 	//      sometimes devices are busy or can happen fail due to a race condition
-	device, err := playbook.getDevice(device_id, driver)
+	device, err := script.getDevice(device_id, driver)
 	if err != nil {
-		return fmt.Errorf("RunPlaybook: %w", err)
+		return fmt.Errorf("RunScript: %w", err)
 	}
 	color.Set(color.FgHiYellow)
 	fmt.Printf("⚙ Using device %q with tags %v\n", device.Name(), device.Tags())
 	color.Unset()
 
-	return playbook.run(device, disableCleanup)
+	return script.run(device, disableCleanup)
 }
 
-func (p *JumpstarterTask) run(device harness.Device) TaskResult {
-	printHeader("TASK", p.getName())
+func (p *JumpstarterStep) run(device harness.Device) StepResult {
+	if p.Comment == nil {
+		printHeader("Step", p.getName())
+	}
+
 	switch {
+	case p.Comment != nil:
+		return p.Comment.run(device)
+
 	case p.SetDiskImage != nil:
 		return p.SetDiskImage.run(device)
 
@@ -78,13 +76,13 @@ func (p *JumpstarterTask) run(device harness.Device) TaskResult {
 		return p.LocalShell.run(device)
 	}
 
-	return TaskResult{
+	return StepResult{
 		status: Fatal,
 		err:    fmt.Errorf("invalid task: %s", p.getName()),
 	}
 }
 
-func (p *JumpstarterPlaybook) getDevice(device_id string, driver string) (harness.Device, error) {
+func (p *JumpstarterScript) getDevice(device_id string, driver string) (harness.Device, error) {
 	if device_id != "" {
 		device, err := harness.FindDevice(driver, device_id)
 		if err != nil {
@@ -93,7 +91,7 @@ func (p *JumpstarterPlaybook) getDevice(device_id string, driver string) (harnes
 		return device, nil
 	} else {
 
-		devices, err := harness.FindDevices(driver, p.Tags)
+		devices, err := harness.FindDevices(driver, p.Selector)
 		if err != nil {
 			return nil, fmt.Errorf("getDevice: %w", err)
 		}
@@ -118,57 +116,54 @@ func (p *JumpstarterPlaybook) getDevice(device_id string, driver string) (harnes
 	}
 }
 
-func (p *JumpstarterPlaybook) runPlaybookTasks(device harness.Device) error {
-	return p.runTasks(&(p.Tasks), device)
+func (p *JumpstarterScript) runScriptSteps(device harness.Device) error {
+	return p.runTasks(&(p.Steps), device)
 }
 
-func (p *JumpstarterPlaybook) runPlaybookCleanup(device harness.Device) error {
-	printHeader("CLEANUPS", p.Name)
+func (p *JumpstarterScript) runScriptCleanup(device harness.Device) error {
+	printHeader("Cleanup", p.Name)
 	return p.runTasks(&(p.Cleanup), device)
 }
 
-func (p *JumpstarterPlaybook) run(device harness.Device, disableCleanup bool) error {
-	printHeader("JUMPSTARTER-PLAY", p.Name)
+func (p *JumpstarterScript) run(device harness.Device, disableCleanup bool) error {
 	var errCleanup error
-	errTasks := p.runPlaybookTasks(device)
+	errTasks := p.runScriptSteps(device)
 
 	if disableCleanup {
 		color.Set(color.FgHiYellow)
 		fmt.Printf("⚠ Cleaning phase has been skipped based on the request")
 		color.Unset()
 	} else {
-		errCleanup = p.runPlaybookCleanup(device)
+		errCleanup = p.runScriptCleanup(device)
 	}
 	if errCleanup != nil {
 		if errTasks != nil {
-			return fmt.Errorf("errors during playbook run %w and cleanup: %w", errTasks, errCleanup)
+			return fmt.Errorf("errors during script run %w and cleanup: %w", errTasks, errCleanup)
 		} else {
-			return fmt.Errorf("errors during playbook cleanup: %w", errCleanup)
+			return fmt.Errorf("errors during script cleanup: %w", errCleanup)
 		}
 	}
 	if errTasks != nil {
-		return fmt.Errorf("errors during playbook run: %w", errTasks)
+		return fmt.Errorf("errors during script run: %w", errTasks)
 	}
 	return nil
 }
 
-func (p *JumpstarterPlaybook) runTasks(tasks *[]JumpstarterTask, device harness.Device) error {
+func (p *JumpstarterScript) runTasks(steps *[]JumpstarterStep, device harness.Device) error {
 
-	for _, task := range *tasks {
+	for _, task := range *steps {
 		task.parent = p // The yaml parser does not do this, but we do it here
 		res := task.run(device)
 		switch res.status {
-		case Ok:
+		case SilentOk:
+
+		case Done:
 			color.Set(color.FgHiGreen)
-			fmt.Printf("ok: [%s]\n\n", device.Name())
-			color.Unset()
-		case Changed:
-			color.Set(color.FgYellow)
-			fmt.Printf("changed: [%s]\n\n", device.Name())
+			fmt.Printf("[✓] done\n\n")
 			color.Unset()
 		case Fatal:
 			color.Set(color.FgHiRed)
-			fmt.Printf("failed: [%s]\n\n", device.Name())
+			fmt.Printf("[x] failed\n\n")
 			color.Unset()
 			return fmt.Errorf("runTasks: %w", res.err)
 		}
@@ -186,21 +181,22 @@ func filterOutBusy(devices []harness.Device) []harness.Device {
 	return freeDevices
 }
 
-func readPlaybook(yaml_file string, playbook *[]JumpstarterPlaybook) error {
-	playbook_data, err := os.ReadFile(yaml_file)
+func readScript(yaml_file string, script *JumpstarterScript) error {
+	script_data, err := os.ReadFile(yaml_file)
 	if err != nil {
-		return fmt.Errorf("readPlaybook(%q): Error reading yaml file: %w", yaml_file, err)
+		return fmt.Errorf("readScript(%q): Error reading yaml file: %w", yaml_file, err)
 	}
 
-	if err := yaml.Unmarshal([]byte(playbook_data), &playbook); err != nil {
-		return fmt.Errorf("readPlaybook(%q): %w", yaml_file, err)
+	if err := yaml.Unmarshal([]byte(script_data), &script); err != nil {
+		return fmt.Errorf("readScript(%q): %w", yaml_file, err)
 	}
 	return nil
 }
 
 func printHeader(header, name string) {
-	MAX_WIDTH := 120
-	// TODO: get from tty console where available
-	taskHeader := fmt.Sprintf("%s [%s] ", header, name)
-	fmt.Println(taskHeader, strings.Repeat("=", MAX_WIDTH-len(taskHeader)-1))
+	fmt.Println(getHeader(header, name))
+}
+
+func getHeader(header, name string) string {
+	return fmt.Sprintf("➤ %s ➤ %s", header, name)
 }
