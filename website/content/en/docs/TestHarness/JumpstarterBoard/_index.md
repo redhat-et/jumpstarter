@@ -25,6 +25,7 @@ interact with the DUT, controlling the power, connection and management of a sto
 (see the pendrive in the next pictures), and communication via serial console.
 
 {{% imgproc "jumpstarter_diagram.png" Fit 800x800 /%}}
+
 ### This is how the hardware looks
 
 {{% imgproc "general_jumpstarter.jpg" Fit 1024x1024 %}}
@@ -38,7 +39,6 @@ host, where the jumpstarter software runs.
 Top view of the jumpstarter board REL-1.0.0 with a visionfive2 board attached
 via USB-PD power pass-through. See more details in the [visionfive2 section](visionfive2/).
 {{% /imgproc %}}
-
 
 ## Warnings: read before you use the board
 
