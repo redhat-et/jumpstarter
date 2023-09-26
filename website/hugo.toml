@@ -117,14 +117,14 @@ github_repo = "https://github.com/redhat-et/jumpstarter"
 github_project_repo = "https://github.com/redhat-et/jumpstarter"
 
 # Specify a value here if your content directory is not in your repo's root directory
-# github_subdir = ""
+# github_subdir = "website"
 
 # Uncomment this if your GitHub repo does not have "main" as the default branch,
 # or specify a new value if you want to reference another branch in your GitHub links
 github_branch= "main"
 
 # Google Custom Search Engine ID. Remove or comment out to disable search.
-gcs_engine_id = "d72aa9b2712488cc3"
+# gcs_engine_id = "d72aa9b2712488cc3"
 
 # Enable Algolia DocSearch
 algolia_docsearch = false
@@ -187,7 +187,7 @@ enable = false
   # replacements = "github.com/google/docsy -> ../../docsy"
   [module.hugoVersion]
     extended = true
-    min = "0.110.0"
+    min = "0.119.0"
   [[module.imports]]
     path = "github.com/google/docsy"
     disable = false
