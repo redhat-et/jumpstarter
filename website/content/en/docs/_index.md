@@ -12,9 +12,16 @@ You are at the right place to learn about the Jumpstarter project!
 ## What is Jumpstarter?
 
 Jumpstarter is a project to enable **Hardware in the Loop** testing for Edge devices.
+<div style="text-align:center; width:70%">
+<img style="width:30em" src="pipeline.svg"/>
+<br/>
+<br/>
+</div>
 
 Embedded and Edge devices have been traditionally tested in a manual way, with a human operator. This is not scalable, and it is not suitable for CI/CD pipelines,
-i.e. GitHub CI, GitLab CI, Tekton, Jenkins.
+i.e. GitHub CI, GitLab CI, Jenkins, (TekTon under development), etc.
+
+{{% imgproc "ci_cd.png" Fit 800x512 / %}}
 
 In a modern development cycle we want to know that our software changes work well into our device hardware. We need to test the onboarding process, the software stack, the hardware, the updates and the interaction between all of them.
 

@@ -45,9 +45,19 @@ $ jumpstarter set-usb-console orin-agx-00 TOPOD83B461B-if01
 {{< /highlight >}}
 
 
-{{% imgproc "P9220014.jpg" Fit 1024x1024 / %}}
+{{% imgproc "P9220014.jpg" Fit 1024x1024  %}}
+Ethernet from the Orin AGX Devkit is connected to the a switch
+where the host running jumpstarter has connectivity.
 
-{{% imgproc "P9220041.jpg" Fit 1024x1024 / %}}
+One USB is connected to the jumpstarter DUT storage connector (J8)
+
+The Power USB-C connection is connected to J5 on the jumpstarter.
+{{% /imgproc %}}
+
+{{% imgproc "P9220041.jpg" Fit 1024x1024  %}}
+In this picture we connected additional cables but we are only using
+GND(black), /RESET(white), CTL_A(green) and CTL_B(blue)
+{{% /imgproc %}}
 
 {{% imgproc "P9220020.jpg" Fit 1024x1024 / %}}
 
@@ -57,13 +67,18 @@ Pins 1,2,3,4 of the [Orin AGX devkit Automation Header J42](https://developer.nv
 Must be connected to pins GND, CTL_A, CTL_B and /RESET of the jumpstarter board I/O connector.
 {{% /imgproc %}}
 
-{{% imgproc "P9220029.jpg" Fit 1024x1024 / %}}
 
-{{% imgproc "P9220030.jpg" Fit 1024x1024 / %}}
+{{% imgproc "P9220030.jpg" Fit 1024x1024 %}}
+
+This USBC connection is used for flashing, and must be connected to the host via USB.
+
+{{% /imgproc %}}
 
 {{% imgproc "P9220032.jpg" Fit 1024x1024 / %}}
 
-{{% imgproc "P9220037.jpg" Fit 1024x1024 / %}}
+{{% imgproc "P9220037.jpg" Fit 1024x1024 %}}
+Jumpstarter needs to be connected to the host via J7 and P1. And the Orin power adapter must be connected to J2.
+{{% /imgproc %}}
 
 
 

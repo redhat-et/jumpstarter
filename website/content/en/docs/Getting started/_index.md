@@ -6,7 +6,7 @@ tags: [test, docs]
 weight: 3
 ---
 
-To start using Jumpstarter you need a [test-harness](../test-harness/) (i.e., a [jumpstarter-board](../test-harness/jumpstarter-board/)) and a device under test (DUT).
+To start using Jumpstarter you need a [test-harness](../testharness/) (i.e., a [jumpstarter-board](../testharness/jumpstarterboard/)) and a device under test (DUT).
 
 You will also need an image to flash into your DUT, it could be an .iso or a raw device image. In the case of the jumpstarter-board, this image
 is flashed on a usb storage device which then can be attached to the DUT.
