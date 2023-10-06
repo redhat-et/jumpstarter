@@ -44,8 +44,3 @@ In a modern development cycle we want to know that our software changes work wel
 
 ## Where should I go next?
 
-Give your users next steps from the Overview. For example:
-
-* [Getting Started](/docs/getting-started/): Get started with Jumpstarter.
-* [Examples](/docs/examples/): Check out some example scripts.
-
