@@ -48,6 +48,14 @@ func (d *JumpstarterDevice) openSerial() error {
 		d.serialPort.Close()
 
 	}
+
+	// this is a workaround for the nvidia TOPO device on the AGX boards
+	// if you open it too quickly after power up console will be unstable
+	// for a while.
+	if strings.Contains(d.devicePath, "TOPO") {
+		time.Sleep(4 * time.Second)
+	}
+
 	port, err := serial.Open(d.devicePath, mode)
 	if err != nil {
 		return fmt.Errorf("openSerial: %w", err)
