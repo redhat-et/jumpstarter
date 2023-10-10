@@ -28,7 +28,7 @@ var powerOffCmd = &cobra.Command{
 		fmt.Printf("🔌 Powering off %s... ", args[0])
 		color.Unset()
 
-		err = device.Power(false)
+		err = device.Power("off")
 		color.Set(COLOR_CMD_INFO)
 		fmt.Println("done")
 		color.Unset()

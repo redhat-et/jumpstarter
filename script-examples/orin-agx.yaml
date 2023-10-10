@@ -2,12 +2,10 @@
 name: "Test Jetson kmods"
 selector:
   - orin
-
 expect-timeout: 60
 
 steps:
   - comment: "Powering off and writing the image to disk"
-
   - power: off
 
   - set-disk-image:
@@ -20,7 +18,7 @@ steps:
 
   - expect:
       this: "login: "
-      debug_escapes: false
+      debug_escapes: true 
       timeout: 300
   - send:
       this:

@@ -8,27 +8,10 @@ import (
 )
 
 func (t *PowerStep) run(device harness.Device) StepResult {
-
-	switch strings.ToLower(string(*t)) {
-	case "on":
-		err := device.Power(true)
-		if err != nil {
-			return StepResult{
-				status: Fatal,
-				err:    err,
-			}
-		}
-	case "off":
-		err := device.Power(false)
-		if err != nil {
-			return StepResult{
-				status: Fatal,
-				err:    err,
-			}
-		}
-		time.Sleep(2 * time.Second)
+	action := strings.ToLower(string(*t))
+	switch action {
 	case "cycle":
-		err := device.Power(false)
+		err := device.Power("off")
 		if err != nil {
 			return StepResult{
 				status: Fatal,
@@ -36,14 +19,21 @@ func (t *PowerStep) run(device harness.Device) StepResult {
 			}
 		}
 		time.Sleep(2 * time.Second)
-		err = device.Power(true)
+		err = device.Power("on")
 		if err != nil {
 			return StepResult{
 				status: Fatal,
 				err:    err,
 			}
 		}
-
+	default:
+		err := device.Power(action)
+		if err != nil {
+			return StepResult{
+				status: Fatal,
+				err:    err,
+			}
+		}
 	}
 
 	return StepResult{

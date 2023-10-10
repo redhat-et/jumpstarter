@@ -34,7 +34,7 @@ var powerOnCmd = &cobra.Command{
 		color.Set(COLOR_CMD_INFO)
 		if pwcycle {
 			fmt.Printf("🔌 Power cycling %s... ", args[0])
-			err = device.Power(false)
+			err = device.Power("off")
 			handleErrorAsFatal(err)
 			time.Sleep(2 * time.Second)
 		} else {
@@ -42,7 +42,7 @@ var powerOnCmd = &cobra.Command{
 		}
 		color.Unset()
 
-		err = device.Power(true)
+		err = device.Power("on")
 		handleErrorAsFatal(err)
 
 		color.Set(COLOR_CMD_INFO)

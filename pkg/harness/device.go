@@ -13,7 +13,7 @@ type ConsoleInterface interface {
 
 type Device interface {
 	Driver() HarnessDriver
-	Power(on bool) error
+	Power(action string) error
 	Console() (ConsoleInterface, error)
 	SetConsoleSpeed(bps int) error
 	Version() (string, error)

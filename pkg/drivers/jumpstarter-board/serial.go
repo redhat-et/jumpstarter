@@ -93,6 +93,23 @@ func (d *JumpstarterDevice) sendAndExpect(cmd, expected string) error {
 	return nil
 }
 
+func (d *JumpstarterDevice) sendAndExpect_t(cmd, expected string, timeout time.Duration) error {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	if err := d.send(cmd); err != nil {
+		return fmt.Errorf("sendAndExpect(%q, %q) sending: %w", cmd, expected, err)
+	}
+
+	if err := d.expect_t(expected, timeout); err != nil {
+		return fmt.Errorf("sendAndExpect(%q, %q) expecting response: %w", cmd, expected, err)
+	}
+
+	if err := d.expect(PROMPT); err != nil {
+		return fmt.Errorf("sendAndExpect(%q, %q) waiting for prompt: %w", cmd, expected, err)
+	}
+	return nil
+}
+
 func (d *JumpstarterDevice) sendAndExpectNoPrompt(cmd, expected string) error {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
@@ -117,7 +134,11 @@ func (d *JumpstarterDevice) send(cmd string) error {
 }
 
 func (d *JumpstarterDevice) expect(expected string) error {
-	d.serialPort.SetReadTimeout(1 * time.Second)
+	return d.expect_t(expected, 1*time.Second)
+}
+
+func (d *JumpstarterDevice) expect_t(expected string, timeout time.Duration) error {
+	d.serialPort.SetReadTimeout(timeout)
 	p := 0
 	received := ""
 	buf := make([]byte, 1)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/redhat-et/jumpstarter/pkg/harness"
 	"go.bug.st/serial"
@@ -34,23 +35,38 @@ func (d *JumpstarterDevice) Unlock() error {
 	return d.closeSerial()
 }
 
-func (d *JumpstarterDevice) Power(on bool) error {
+func (d *JumpstarterDevice) Power(action string) error {
+	action = strings.ToLower(action)
+	expected_response := "Device "
+
 	if err := d.ensureSerial(); err != nil {
-		return fmt.Errorf("Power(%v): %w", on, err)
+		return fmt.Errorf("Power(%q): %w", action, err)
 	}
 
 	if err := d.exitConsole(); err != nil {
-		return fmt.Errorf("Power(%v): %w", on, err)
+		return fmt.Errorf("Power(%q): %w", action, err)
 	}
-	if on {
-		if err := d.sendAndExpect("power on", "Device powered on"); err != nil {
-			return fmt.Errorf("PowerOn: %w", err)
-		}
-	} else {
-		if err := d.sendAndExpect("power off", "Device powered off"); err != nil {
-			return fmt.Errorf("Power(%v): %w", on, err)
-		}
+
+	d.serialPort.SetReadTimeout(30 * time.Second)
+
+	switch action {
+	case "on":
+		expected_response = "Device powered on"
+	case "off":
+		expected_response = "Device powered off"
+	case "force-off":
+		expected_response = "Device forced off"
+	case "force-on":
+		expected_response = "Device forced on"
+	case "rescue":
+		expected_response = "Device powered on to rescue"
+
 	}
+
+	if err := d.sendAndExpect_t("power "+action, expected_response, 30*time.Second); err != nil {
+		return fmt.Errorf("Power(%q): %w", action, err)
+	}
+
 	return nil
 }
 
