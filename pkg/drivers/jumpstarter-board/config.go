@@ -86,6 +86,23 @@ func (d *JumpstarterDevice) readConfig() error {
 	return nil
 }
 
+func (d *JumpstarterDevice) SetConfig(k, v string) error {
+	k = strings.ToLower(k)
+	if err := d.ensureSerial(); err != nil {
+		return fmt.Errorf("SetConfig(%v, %v): %w", k, v, err)
+	}
+
+	if err := d.exitConsole(); err != nil {
+		return fmt.Errorf("SetConfig(%v, %v): %w", k, v, err)
+	}
+
+	if err := d.sendAndExpect("set-config "+k+" "+v, "Set "+k+" to "+v); err != nil {
+		return fmt.Errorf("SetConfig(%v, %v) %w", k, v, err)
+	}
+
+	return nil
+}
+
 func (d *JumpstarterDevice) SetName(name string) error {
 	if err := d.ensureSerial(); err != nil {
 		return fmt.Errorf("SetName(%v): %w", name, err)
