@@ -28,21 +28,41 @@ func (d *JumpstarterDevice) IsBusy() (bool, error) {
 	return d.busy, nil
 }
 
-func (d *JumpstarterDevice) readConfig() error {
+func (d *JumpstarterDevice) GetConfig() (map[string]string, error) {
+	config := map[string]string{}
+
+	buf, err := d.getConfigLines()
+	if err != nil {
+		return config, fmt.Errorf("readConfig: %w", err)
+	}
+	lines := strings.Split(buf, "\r\n")
+	for _, line := range lines {
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		k := strings.Trim(parts[0], " ")
+		v := strings.Trim(parts[1], " ")
+		config[k] = v
+	}
+	return config, nil
+}
+
+func (d *JumpstarterDevice) getConfigLines() (string, error) {
 	if err := d.ensureSerial(); err != nil {
 		d.name = "**BUSY**"
 		d.busy = true
-		return nil
+		return "", nil
 	}
 
 	defer d.closeSerial()
 
 	if err := d.exitConsole(); err != nil {
-		return fmt.Errorf("readConfig: %w", err)
+		return "", fmt.Errorf("getConfigLines: %w", err)
 	}
 
 	if err := d.sendAndExpectNoPrompt("get-config", "get-config\r\n"); err != nil {
-		return fmt.Errorf("readConfig: %w", err)
+		return "", fmt.Errorf("getConfigLines: %w", err)
 	}
 	d.serialPort.SetReadTimeout(100 * time.Millisecond)
 
@@ -53,7 +73,7 @@ func (d *JumpstarterDevice) readConfig() error {
 	for p < len(buf) {
 		n, err := d.serialPort.Read(c)
 		if err != nil {
-			return fmt.Errorf("readConfig: %w", err)
+			return "", fmt.Errorf("getConfigLines: %w", err)
 		}
 		if n == 0 || c[0] == '#' {
 			break
@@ -63,8 +83,15 @@ func (d *JumpstarterDevice) readConfig() error {
 	}
 
 	buf = buf[:p]
+	return string(buf), nil
+}
+func (d *JumpstarterDevice) readConfig() error {
 
-	lines := strings.Split(string(buf), "\r\n")
+	buf, err := d.getConfigLines()
+	if err != nil {
+		return fmt.Errorf("readConfig: %w", err)
+	}
+	lines := strings.Split(buf, "\r\n")
 	for _, line := range lines {
 		if strings.HasPrefix(line, "name:") {
 			d.name = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(line, "name:")))

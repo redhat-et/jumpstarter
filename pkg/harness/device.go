@@ -23,6 +23,7 @@ type Device interface {
 	SetUsbConsole(name string) error // set the substring of an out of band console name for this device
 	SetTags(tags []string) error
 	SetConfig(k, v string) error
+	GetConfig() (map[string]string, error)
 	Serial() (string, error)
 	SetDiskImage(path string, offset uint64) error
 	AttachStorage(connect bool) error
