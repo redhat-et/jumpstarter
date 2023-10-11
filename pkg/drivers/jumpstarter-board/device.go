@@ -19,7 +19,8 @@ type JumpstarterDevice struct {
 	mutex          *sync.Mutex
 	singletonMutex *sync.Mutex
 	name           string
-	storage        string
+	storage_filter string
+	json_config    map[string]string
 	oobSerialPort  serial.Port
 	usb_console    string
 	tags           []string

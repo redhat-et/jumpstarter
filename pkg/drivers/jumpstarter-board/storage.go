@@ -153,13 +153,27 @@ func (d *JumpstarterDevice) detectStorageDevice() (string, error) {
 			return "", fmt.Errorf("detectStorageDevice: %w", err)
 		}
 		newDiskSet := (*diskSetOn).Difference(*diskSetOff)
-		if newDiskSet.Cardinality() == 1 {
-			diskPath, _ := newDiskSet.Pop()
+
+		diskSetFiltered := mapset.NewSet[string]()
+		// if more than one, attempt to filter by storage_filter
+		for diskPath := range newDiskSet.Iter() {
+			if d.storage_filter == "" || strings.Contains(diskPath, d.storage_filter) {
+				diskSetFiltered.Add(diskPath)
+			}
+		}
+
+		if diskSetFiltered.Cardinality() == 1 {
+			diskPath, _ := diskSetFiltered.Pop()
 			return diskPath, nil
 		}
+
 		if time.Since(start) > WAIT_TIME_USB_STORAGE {
-			if newDiskSet.Cardinality() > 1 {
-				return "", fmt.Errorf("detectStorageDevice: more than one new disk detected")
+			if diskSetFiltered.Cardinality() > 1 {
+				return "", fmt.Errorf("detectStorageDevice: more than one new disk detected: %v, try using or narrowing the storage_filter setting", diskSetFiltered)
+			}
+
+			if diskSetFiltered.Cardinality() == 0 && newDiskSet.Cardinality() != 0 {
+				return "", fmt.Errorf("detectStorageDevice: some disks detected %v, but nothing matches your storage_filter: %q", newDiskSet, d.storage_filter)
 			}
 			return "", fmt.Errorf("detectStorageDevice: no new disk detected after 30 seconds")
 		}

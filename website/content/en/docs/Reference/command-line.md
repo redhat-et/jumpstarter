@@ -86,6 +86,18 @@ Flags:
   -o, --offset-gb uint   Offset in GB to write the image to in the disk
 {{< / highlight >}}
 
+
+You can limit or filter the devices found by jumpstarter for image writing by
+using the storage_filter config. This configuration is stored into the test
+harness board and will be used by jumpstarter to filter the devices found.
+
+i.e. for using only `/dev/disk/by-id/usb-SanDisk_Extreme_Pro_52A456790D93-0:0`
+
+you could set:
+`jumpstarter set-config device-id storage_filter Extreme_Pro_52A456790D93-0:0`
+
+This is also useful if your USB disk exposes multiple sub-devices.
+
 ### attach-storage device-id
 This command attaches the storage device to the DUT. This is normally required to boot the DUT.
 

@@ -1,6 +1,7 @@
 package jumpstarter_board
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -16,7 +17,8 @@ func newJumpstarter(ttyname string, version string, serial string) JumpstarterDe
 		singletonMutex: &sync.Mutex{},
 		busy:           false,
 		name:           "",
-		storage:        "",
+		json_config:    map[string]string{},
+		storage_filter: "",
 		tags:           []string{},
 		consoleMode:    true, // let's asume it's in console mode so we will force exit at start
 	}
@@ -99,8 +101,21 @@ func (d *JumpstarterDevice) readConfig() error {
 		if strings.HasPrefix(line, "tags:") {
 			d.tags = strings.Split(strings.ToLower(strings.TrimSpace(strings.TrimPrefix(line, "tags:"))), ",")
 		}
-		if strings.HasPrefix(line, "storage:") {
-			d.storage = strings.TrimSpace(strings.TrimPrefix(line, "storage:"))
+		if strings.HasPrefix(line, "json:") {
+			json_str := strings.TrimSpace(strings.TrimPrefix(line, "json:"))
+			if json_str != "" {
+				// umarshall json into a map[string] string
+				var objmap map[string]string
+				err := json.Unmarshal([]byte(json_str), &objmap)
+				if err != nil {
+					return fmt.Errorf("readConfig: json unmarshal %w", err)
+				}
+				d.json_config = objmap
+				if storage_filter, ok := objmap["storage_filter"]; ok {
+					d.storage_filter = storage_filter
+				}
+			}
+
 		}
 		if strings.HasPrefix(line, "usb_console:") {
 			d.usb_console = strings.TrimSpace(strings.TrimPrefix(line, "usb_console:"))
@@ -113,8 +128,11 @@ func (d *JumpstarterDevice) readConfig() error {
 	return nil
 }
 
-func (d *JumpstarterDevice) SetConfig(k, v string) error {
+func (d *JumpstarterDevice) setConfig(k, v string) error {
 	k = strings.ToLower(k)
+	if strings.Contains(v, " ") || strings.Contains(v, "\r") || strings.Contains(v, "\n") {
+		return fmt.Errorf("SetConfig(%v, %v): invalid value, cannot contain spaces or \\r \\n", k, v)
+	}
 	if err := d.ensureSerial(); err != nil {
 		return fmt.Errorf("SetConfig(%v, %v): %w", k, v, err)
 	}
@@ -127,6 +145,27 @@ func (d *JumpstarterDevice) SetConfig(k, v string) error {
 		return fmt.Errorf("SetConfig(%v, %v) %w", k, v, err)
 	}
 
+	return nil
+}
+
+func (d *JumpstarterDevice) SetConfig(k, v string) error {
+	// for parameters that are directly stored in the config list
+	if k == "name" || k == "tags" || k == "usb_console" ||
+		k == "power_on" || k == "power_off" || k == "power_rescue" {
+		return d.setConfig(k, v)
+	}
+	// for parameters that we mash in the json field
+	if k == "storage_filter" {
+		if err := d.readConfig(); err != nil {
+			return fmt.Errorf("SetConfig(%v, %v): %w", k, v, err)
+		}
+		d.json_config[k] = v
+		json_str, err := json.Marshal(d.json_config)
+		if err != nil {
+			return fmt.Errorf("SetConfig(%v, %v): json.Marshal %w", k, v, err)
+		}
+		return d.setConfig("json", string(json_str))
+	}
 	return nil
 }
 
