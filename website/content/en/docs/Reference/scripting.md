@@ -1,6 +1,6 @@
 ---
 title: Jumpstarter scripts
-weight: 8
+weight: 4
 date: 2023-09-25
 description: See your project in action!
 ---

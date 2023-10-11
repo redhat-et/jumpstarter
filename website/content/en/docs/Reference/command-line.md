@@ -1,7 +1,7 @@
 ---
 title: Command line
 description: Command line and scripting reference for Jumpstarter.
-weight: 4
+weight: 1
 ---
 
 {{% pageinfo %}}
@@ -22,7 +22,7 @@ All commands accept the following flags
 
 ## GENERAL COMMANDS
 
-### list-devices
+### **list-devices**
 This command will list all the devices that are currently available throught the various test-harness drivers.
 {{< highlight "" >}}
 $ jumpstarter list-devices
@@ -32,7 +32,7 @@ xavier-nx-00	e6058905	jumpstarter-board	0.04	/dev/ttyACM1	nvidia, xavier-nx, nvi
 visionfive2-00	031da453	jumpstarter-board	0.04	/dev/ttyACM0	rv64gc, rv64, jh7110, visionfive2, 8gb
 {{< / highlight >}}
 
-### list-drivers
+### **list-drivers**
 This command lists all the drivers that are currently available.
 
 {{< highlight "" >}}
@@ -44,7 +44,7 @@ jumpstarter-board
 	access, and USB storage switching.
 {{< / highlight >}}
 
-### run-script script.yaml
+### **run-script** script.yaml
 This is probably the most useful jumpstarter command today.
 It runs a jumpstarter script, which will select a device based on the selector tags,
 and execute all the steps of the script. Once finished or if an error occurs the
@@ -56,7 +56,7 @@ $ jumpstarter run-script script.yaml
 See the [scripting](/docs/reference/scripting/) section for a detailed guide on how to write
 scripts and examples.
 
-### set-control device-id
+### **set-control** device-id
 Set a control signal from the test-harness to the device. This is used to control
 signals on the DUT or trigger external hardware like video generators, simulated sensors,
 fault injectors, or other necessary devices.
@@ -72,7 +72,7 @@ The signal names and output modes depend on the test-harness being used. See the
 
 ## STORAGE MANAGEMENT
 
-### set-disk-image device-id
+### **set-disk-image** device-id
 Set the disk image to be used for the DUT. This is used to write the disk image
 to the DUT's attacheable storage device. Images can be a raw disk image
 or an ISO image.
@@ -94,7 +94,7 @@ $ jumpstarter attach-storage orin-agx-00
 💾 Attaching storage for orin-agx-00 ... done
 {{< / highlight >}}
 
-#### detach-storage device-id
+#### **detach-storage** device-id
 This command detaches the storage device to the DUT.
 
 {{< highlight "" >}}
@@ -104,31 +104,39 @@ $ jumpstarter detach-storage orin-agx-00
 
 ## POWER MANAGEMENT
 
-### power-off device-id
-This command powers off the DUT.
+### **power** on|off|force-on|force-off|rescue device-id [-t] [-r] [-a]
+This command manipulates the power status of a device
 
-{{< highlight "" >}}
-$ jumpstarter power-off orin-agx-00
+i.e.:
+```
+$ jumpstarter power off orin-agx-00
 🔌 Powering off orin-agx-00... done
-{{< / highlight >}}
+```
 
-### power-on device-id
-This command powers on the DUT.
+The different power actions available are:
 
-{{< highlight "" >}}
-$ jumpstarter power-on orin-agx-00
-🔌 Powering off orin-agx-00... done
-{{< / highlight >}}
++-------------+----------------+
++ Action      + Description    +
++-------------+----------------+
++ on          | Power on the device using the power_on profile from configuration |
++ off         | Power off the device using the power_off profile from configuration |
++ force-on    | Power on the device using only power, ignoring the profile from configuration |
++ force-off   | Power off the device using only power, ignoring the profile from configuration |
++ rescue      | Power on the device using the power_rescue profile from configuration |
++ ------------+----------------+
 
-{{< highlight "" >}}
 Flags:
   -a, --attach-storage   Attach storage before powering on
   -t, --console          Open console terminal after powering on
-  -c, --cycle            Power cycle the device
   -r, --reset            Reset device after power up
-{{< / highlight >}}
+```
 
-### reset device-id
+For information on how to configura the power profiles (power_on, power_off, power_rescue),
+please see the set-config section.
+
+
+
+### **reset** device-id
   Use the reset signal on the device to reset it, only open drain signal is supported (pulling low + high impedance) at this time.
 
 {{< highlight "" >}}
@@ -138,7 +146,7 @@ $ jumpstarter reset orin-agx-00
 
 ## DEVICE CONSOLE
 
-### console device-id
+### **console** device-id
 This command provides a serial console to the DUT, it will connect to the serial console of the DUT and allow you to interact with it.
 
 {{< highlight "" >}}
@@ -152,7 +160,7 @@ Looking up for out-of-band console:  TOPOD83B461B-if01
 {{< / highlight >}}
 
 
-### create-ansible-inventory device-id
+### **create-ansible-inventory** device-id
 This command interacts with the console of the DUT
 which must be logged in with a user andcreates an ansible inventory file for the DUT. This ansible inventory can
 be used to run ansible playbooks against the DUT.
@@ -168,7 +176,7 @@ Flags:
   -u, --user string      The user for the ansible inventory file (default "root")
 {{< / highlight >}}
 
-### run device-id command
+### **run** device-id command
   Sends a string via the serial console to the DUT and waits for a response which is then written to stdout.
 
 {{< highlight "" >}}
@@ -201,7 +209,7 @@ Flags:
 
 ## CONFIGURATION
 
-### set-name
+### **set-name** device-id name
 Changes device name. This is used to set a name for the test-harness device. This
 should make devices easier to identify.
 
@@ -211,7 +219,7 @@ $ jumpstarter set-name e6058a05 orin-agx-00
 {{< / highlight >}}
 
 
-### set-tags
+### **set-tags** device-id tag1 [tag2 ...]
 Changes device tags, pass one argument per tag. This is used to set tags for the test-harness device
 which can be used to select specific devices from a script or some commands.
 
@@ -220,7 +228,35 @@ $ jumpstarter set-name orin-agx-00 orin-agx orin 64gb
 ✍ Changing device name for orin-agx-00 to orin-agx ... done
 {{< / highlight >}}
 
-### set-usb-console
+### **get-config** device-id [key]
+
+Shows the device configuration parameters stored on the test-harness board.
+If a key is provided only the value for that key will be shown.
+
+```
+$ ./jumpstarter get-config orin-nx-00 power_on
+p1,bL,w5,bZ
+```
+
+Otherwise a yaml list of all parameters will be shown.
+```
+$ ./jumpstarter get-config orin-nx-00
+name: orin-nx-00
+tags: orin-nx-00,orin,orin-nx,16gb
+json:
+usb_console:
+power_on: p1,bL,w5,bZ
+power_off: p1,bL,w5,bZ,w10,bL,w110,bZ
+power_rescue: p1,bL,w1,bZ,w1,aL,rL,w1,rZ,w1,aZ
+```
+
+### **set-config** device-id key value
+
+Changes a device configuration config parameter (see get-config).
+
+if values is "" the config will be deleted.
+
+#### usb_console config parameter
 Changes device name for out of band USB console. Some devices expose a console only via USB
 and the console is not accessible via pins. This command allows you to set a matching string
 for the USB console of the device.
@@ -233,4 +269,40 @@ $ jumpstarter set-usb-console orin-agx-00 TOPOD83B461B-if01
 ✍ Changing usb_console name for orin-agx-00 to TOPOD83B461B-if01 ... done
 {{< / highlight >}}
 
+#### power_on/off/recue parameters
+These parameters are used to configure the power sequences, they are a comma separated list of
+commands to be executed by the test-harness board to perform the power on/off/rescue of the device.
 
+The commands are:
+* p1: power enable
+* p0: power disable
+* aL: pin A low
+* aH: pin A high
+* aZ: pin A high impedance
+* bL: pin B low
+* ...
+* rL: pin RESET low
+* rH: pin RESET high
+* rZ: pin RESET high impedance
+* wN: wait N*100 ms, where N is a natural number.
+
+Some examples of configuration for orin-nx/orin-agx devkit boards:
+
+Touch power button for 500ms:
+```
+power_on: p1,bL,w5,bZ
+```
+
+Touch power button for 500ms (to make sure we start from ON), then touch for 11s.
+```
+power_off: p1,bL,w5,bZ,w10,bL,w110,bZ
+```
+
+Touch power button for 500ms (to make sure we start from ON), then assert
+A (recovery), then assert the reset signal, and wait 500ms, then deassert reset,
+wait 500ms, deassert A (recovery). This should put the jetson device into recovery mode.
+```
+power_rescue: p1,bL,w5,bZ,w1,aL,rL,w5,rZ,w5,aZ
+```
+
+where pin A is "REC" and pin B is "PWR" on the orin-agx/orin-nx boards.
