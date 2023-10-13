@@ -140,7 +140,8 @@ See the [Console access](#console-access) section and associate the TOPO USB con
 
 ### My console shows garbage during boot
 There is a known issue with the TOPO USB console, where it will show garbage after power-on, then it
-recovers. We are working on a workaround for the issue.
+recovers. To avoid this issue, we recommend using jumpstarter firmware > 0.06 and
+configuring the power sequencing as described in [Power sequencing](#power-sequencing).
 
 ### The system won't boot from the USB disk
 You need to go into the UEFI BIOS and change the boot order to setup "new devices"
