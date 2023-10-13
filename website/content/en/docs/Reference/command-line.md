@@ -127,16 +127,16 @@ $ jumpstarter power off orin-agx-00
 
 The different power actions available are:
 
-+-------------+----------------+
-+ Action      + Description    +
-+-------------+----------------+
-+ on          | Power on the device using the power_on profile from configuration |
-+ off         | Power off the device using the power_off profile from configuration |
-+ force-on    | Power on the device using only power, ignoring the profile from configuration |
-+ force-off   | Power off the device using only power, ignoring the profile from configuration |
-+ rescue      | Power on the device using the power_rescue profile from configuration |
-+ ------------+----------------+
+| Action      | Description    |
+|-------------|----------------|
+| on          | Power on the device using the power_on profile from configuration |
+| off         | Power off the device using the power_off profile from configuration |
+| force-on    | Power on the device using only power, ignoring the profile from configuration |
+| force-off   | Power off the device using only power, ignoring the profile from configuration |
+| rescue      | Power on the device using the power_rescue profile from configuration |
 
+
+```
 Flags:
   -a, --attach-storage   Attach storage before powering on
   -t, --console          Open console terminal after powering on

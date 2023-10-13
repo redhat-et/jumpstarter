@@ -136,7 +136,7 @@ See the [Console access](#console-access) section and associate the TOPO USB con
 
 ### My DUT doesn't power on
 * Check that the AUTO-POWER jumper is connected.
-* See [Know issues and limitations](http://localhost:1313/docs/testharness/jumpstarterboard/#known-issues-and-limitations) you may need to flip the USB-C cable going to the AGX board or the power adapter USB-C.
+* See [Know issues and limitations](/docs/testharness/jumpstarterboard/#known-issues-and-limitations) you may need to flip the USB-C cable going to the AGX board or the power adapter USB-C.
 
 ### My console shows garbage during boot
 There is a known issue with the TOPO USB console, where it will show garbage after power-on, then it
@@ -147,6 +147,27 @@ You need to go into the UEFI BIOS and change the boot order to setup "new device
 as the first boot option. Make sure that the USB devices is found.
 
 Make sure that you are not using a USB3.1 Gen2 device (10Gbps), as this is not supported yet.
+
+## Power sequencing
+The Orin AGX Devkit has an automation header that can be used to control the power
+and reset of the board. The jumpstarter board can be used to control the power
+and reset of the Orin AGX Devkit in addition to the analog power control.
+
+This is useful to workaround the isue described in [My console shows garbage during boot](#my-console-shows-garbage-during-boot), since the NVIDIA TOPO USB controller has a bug
+that will corrupt the console during first boot after power-on on some usb hosts. With
+this feature we can avoid power cycling the topo chip but still controll power-on/off
+of the board.
+
+The recommended setting is:
+
+`jumpstarter set-config device-id power_on p1,bL,w5,bZ`
+
+`jumpstarter set-config device-id power_off p1,bL,w5,bZ,w10,bL,w110,bZ`
+
+`jumpstarter set-config device-id power_rescue p1,bL,w1,bZ,w1,aL,rL,w1,rZ,w1,aZ`
+
+See the [Power sequencing](/docs/reference/command-line/#power-on-off-rescue-parameters) configuration
+details.
 
 ## Console access
 The Orin AGX Devkit only exposes the UEFI and kernel serial console via the
