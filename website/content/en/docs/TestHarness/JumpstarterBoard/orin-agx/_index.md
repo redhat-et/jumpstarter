@@ -166,7 +166,7 @@ The recommended setting is:
 
 `jumpstarter set-config device-id power_rescue p1,bL,w1,bZ,w1,aL,rL,w1,rZ,w1,aZ`
 
-See the [Power sequencing](/docs/reference/command-line/#power-on-off-rescue-parameters) configuration
+See the [Power sequencing](/docs/reference/command-line/#power_onoffrecue-parameters) configuration
 details.
 
 ## Console access
