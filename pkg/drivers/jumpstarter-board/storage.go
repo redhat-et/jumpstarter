@@ -12,6 +12,7 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/fatih/color"
 )
 
 const BASE_DISKSBYID = "/dev/disk/by-id/"
@@ -233,7 +234,10 @@ func writeImageToDisk(imagePath string, diskPath string, offset uint64) error {
 	var errb bytes.Buffer
 	cmd.Stderr = &errb
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("writeImageToDisk: %w %s", err, errb.String())
+		// udiskctl doesn't work in the container workflows, so we ignore the error and write a warning
+		color.Set(color.FgYellow)
+		fmt.Printf("warning: udisksctl power-off failed: %s\n", errb.String())
+		color.Unset()
 	}
 	time.Sleep(WAIT_TIME_USB_STORAGE_OFF)
 	return nil
