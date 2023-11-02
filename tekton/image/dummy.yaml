@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: dummy
+  name: dummy
+spec:
+  volumes:
+    - name: image
+      persistentVolumeClaim:
+        claimName: lvm-rhel-image
+
+  containers:
+    - name: dummy
+      args:
+        - sleep
+        - "3600"
+      image: fedora:latest
+      imagePullPolicy: Always
+      volumeMounts:
+        - mountPath: "/mnt"
+          name: image
+
+

@@ -1,0 +1,81 @@
+﻿apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: run-jumpstarter-script
+spec:
+  params:
+    - name: scriptFile
+      type: string
+    - name: imageFile
+      type: string
+    - description: base64 encoded ssh key for accessing a device with this image.
+      name: imageSshKey
+      type: string
+    - default: 'false'
+      description: >-
+        Disables jumpstarter cleanup at the end, or in case of errors, this is
+        helpful for debugging purposes.
+      name: disableCleanup
+      type: string
+  steps:
+    - image: 'quay.io/mangelajo/jumpstarter:0.3.2'
+      name: info
+      resources: {}
+      script: |
+        #!/usr/bin/env sh
+        set -x
+
+        jumpstarter list-devices
+
+        ls $(workspaces.images.path)
+        ls $(workspaces.scripts.path)
+        ls $(workspaces.artifacts.path)
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /dev
+          name: dynamic-devices
+    - image: 'quay.io/mangelajo/jumpstarter:0.3.2'
+      name: run-script
+      resources: {}
+      script: |
+        #!/usr/bin/env sh
+
+
+        if [[ "$(params.imageSshKey)" != "" ]]; then
+          echo Using imageSshKey parameter as ~/.ssh/id_rsa
+          mkdir -p ~/.ssh
+          echo "$(params.imageSshKey)" | base64 -d > ~/.ssh/id_rsa
+          chmod 700 ~/.ssh
+          chmod -R 400 ~/.ssh/*
+        fi
+
+        set -x
+
+        ln -s  $(workspaces.images.path)/$(params.imageFile) .
+        cp -rfv $(workspaces.scripts.path)/* .
+
+        PARAMS=
+
+        if [[ "$(params.disableCleanup)" == "true" ]]; then
+          PARAMS="${PARAMS} --disable-cleanup"
+        fi
+        jumpstarter run-script $PARAMS $(params.scriptFile)
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /dev
+          name: dynamic-devices
+  volumes:
+    - hostPath:
+        path: /dev
+      name: dynamic-devices
+  workspaces:
+    - description: The script sources to be ran with jumpstarter
+      name: scripts
+    - description: The images to be used by the jumpstarter script
+      name: images
+      optional: true
+    - description: The output directory for artifacts
+      name: artifacts
+      optional: true
