@@ -21,6 +21,7 @@ const BLOCK_SIZE = 32 * 1024 * 1024
 
 const WAIT_TIME_USB_STORAGE = 6 * time.Second
 const WAIT_TIME_USB_STORAGE_OFF = 2 * time.Second
+const WAIT_TIME_USB_STORAGE_DISCONNECT = 30 * time.Second //big workarround until cache flush works well
 
 type StorageTarget int
 
@@ -239,6 +240,6 @@ func writeImageToDisk(imagePath string, diskPath string, offset uint64) error {
 		fmt.Printf("warning: udisksctl power-off failed: %s\n", errb.String())
 		color.Unset()
 	}
-	time.Sleep(WAIT_TIME_USB_STORAGE_OFF)
+	time.Sleep(WAIT_TIME_USB_STORAGE_DISCONNECT)
 	return nil
 }
