@@ -19,9 +19,9 @@ const BASE_DISKSBYID = "/dev/disk/by-id/"
 
 const BLOCK_SIZE = 32 * 1024 * 1024
 
-const WAIT_TIME_USB_STORAGE = 6 * time.Second
+const WAIT_TIME_USB_STORAGE = 12 * time.Second
 const WAIT_TIME_USB_STORAGE_OFF = 2 * time.Second
-const WAIT_TIME_USB_STORAGE_DISCONNECT = 30 * time.Second //big workarround until cache flush works well
+const WAIT_TIME_USB_STORAGE_DISCONNECT = 6 * time.Second
 
 type StorageTarget int
 
