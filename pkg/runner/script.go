@@ -13,9 +13,19 @@ type JumpstarterScript struct {
 	Name          string            `yaml:"name"`
 	Selector      []string          `yaml:"selector"`
 	Drivers       []string          `yaml:"drivers"`
-	ExpectTimeout uint              `yaml:"expect-timeout"`
+	ExpectTimeout uint              `default:"120" yaml:"expect-timeout"`
 	Steps         []JumpstarterStep `yaml:"steps"`
 	Cleanup       []JumpstarterStep `yaml:"cleanup"`
+}
+
+func (e *JumpstarterScript) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Set the defaults defined in struct metadata
+	defaults.Set(e)
+	type plain JumpstarterScript
+	if err := unmarshal((*plain)(e)); err != nil {
+		return err
+	}
+	return nil
 }
 
 type JumpstarterStep struct {
@@ -44,7 +54,7 @@ type ExpectStep struct {
 	This         string `yaml:"this"`
 	Fatal        string `yaml:"fatal"`
 	Echo         bool   `default:"true" yaml:"echo"`
-	DebugEscapes bool   `default:"true" yaml:"debug_escapes"`
+	DebugEscapes bool   `default:"false" yaml:"debug_escapes"`
 	Timeout      uint   `yaml:"timeout"`
 }
 
@@ -88,7 +98,7 @@ type SendStep struct {
 	This         []string `yaml:"this"`
 	DelayMs      uint     `default:"100" yaml:"delay_ms"`
 	Echo         bool     `default:"true" yaml:"echo"`
-	DebugEscapes bool     `default:"true" yaml:"debug_escapes"`
+	DebugEscapes bool     `default:"false" yaml:"debug_escapes"`
 }
 
 func (s *SendStep) UnmarshalYAML(unmarshal func(interface{}) error) error {
