@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/creasty/defaults"
 )
@@ -125,11 +126,11 @@ func (p *JumpstarterStep) getName() string {
 
 	switch {
 	case p.SetDiskImage != nil:
-		return "set-disk-image"
+		return fmt.Sprintf("set-disk-image: %v", p.SetDiskImage.Image)
 	case p.Expect != nil:
 		return fmt.Sprintf("expect: %q", p.Expect.This) // we should add a getName method instead
 	case p.Send != nil:
-		return "send"
+		return fmt.Sprintf("send: %v", strings.Replace(strings.Join(p.Send.This, ", "), "\n", "", -1))
 	case p.Storage != nil:
 		return fmt.Sprintf("storage: %q", string(*p.Storage))
 	case p.Power != nil:

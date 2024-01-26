@@ -40,6 +40,8 @@ func (p *JumpstarterStep) run(device harness.Device) StepResult {
 	if p.Comment == nil {
 		printHeader("Step", p.getName())
 	}
+	// we must also close the Comment.run output when necessary
+	defer endHeader()
 
 	switch {
 	case p.Comment != nil:
@@ -122,7 +124,9 @@ func (p *JumpstarterScript) runScriptSteps(device harness.Device) error {
 
 func (p *JumpstarterScript) runScriptCleanup(device harness.Device) error {
 	printHeader("Cleanup", p.Name)
+	defer endHeader()
 	return p.runTasks(&(p.Cleanup), device)
+
 }
 
 func (p *JumpstarterScript) run(device harness.Device, disableCleanup bool) error {
@@ -197,6 +201,14 @@ func printHeader(header, name string) {
 	fmt.Println(getHeader(header, name))
 }
 
+func endHeader() {
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		fmt.Println("::endgroup::")
+	}
+}
 func getHeader(header, name string) string {
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		return fmt.Sprintf("::group:: %s ➤ %s", header, name)
+	}
 	return fmt.Sprintf("➤ %s ➤ %s", header, name)
 }
