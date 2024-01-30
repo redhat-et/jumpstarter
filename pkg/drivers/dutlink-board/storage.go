@@ -13,6 +13,7 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/fatih/color"
+	"github.com/schollz/progressbar/v3"
 )
 
 const BASE_DISKSBYID = "/dev/disk/by-id/"
@@ -190,6 +191,12 @@ func writeImageToDisk(imagePath string, diskPath string, offset uint64) error {
 	}
 	defer inputFile.Close()
 
+	fi, err := inputFile.Stat()
+	if err != nil {
+		return fmt.Errorf("writeImageToDisk: reading input file info %w", err)
+	}
+	inputSize := fi.Size()
+
 	outputFile, err := os.OpenFile(diskPath, os.O_WRONLY|os.O_SYNC, 0666)
 	if err != nil {
 		return fmt.Errorf("writeImageToDisk: %w", err)
@@ -201,8 +208,8 @@ func writeImageToDisk(imagePath string, diskPath string, offset uint64) error {
 	}
 
 	buffer := make([]byte, BLOCK_SIZE)
-	bytesCopied := 0
-	start := time.Now()
+
+	bar := progressbar.DefaultBytes(inputSize, "💾 writing")
 	for {
 		n, err := inputFile.Read(buffer)
 		if err != nil && err != io.EOF {
@@ -216,12 +223,7 @@ func writeImageToDisk(imagePath string, diskPath string, offset uint64) error {
 			outputFile.Close()
 			return fmt.Errorf("writeImageToDisk: %w", err)
 		}
-		elapsed := time.Since(start)
-
-		bytesCopied += n
-		MBCopied := bytesCopied / 1024 / 1024
-		MBPerSec := float64(MBCopied) / elapsed.Seconds()
-		fmt.Printf("\r💾 %d MB copied %.2f MB/s         ", MBCopied, MBPerSec)
+		bar.Add(n)
 	}
 	outputFile.Close()
 	fmt.Println()
