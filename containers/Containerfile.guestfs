@@ -1,4 +1,0 @@
-FROM quay.io/centos/centos:stream9
-WORKDIR /guestfs
-RUN dnf install -y epel-release
-RUN dnf install -y xz libguestfs libguestfs-tools guestfs-tools openssh

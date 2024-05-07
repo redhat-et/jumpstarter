@@ -1,7 +1,0 @@
-FROM quay.io/centos/centos:stream9
-WORKDIR /jumpstarter
-ENV VERSION=0.3.2
-COPY install.sh .
-RUN dnf install -y epel-release
-RUN dnf install -y ansible xz rsync
-RUN ./install.sh ${VERSION}
