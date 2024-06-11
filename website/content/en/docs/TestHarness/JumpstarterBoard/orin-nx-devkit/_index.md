@@ -1,7 +1,7 @@
 ---
 title: Orin NX Devkit + DutLink
 weight: 1
-date: 2023-09-25
+date: 2024-05-11
 description: Manual for connecting the dutlink board to the Orin AGX devkit.
 ---
 
