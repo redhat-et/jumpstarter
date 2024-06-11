@@ -1,5 +1,5 @@
 ---
-title: Orin AGX + jumpstarter
+title: Orin NX Devkit + DutLink
 weight: 1
 date: 2023-09-25
 description: Manual for connecting the dutlink board to the Orin AGX devkit.
